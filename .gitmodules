@@ -1,0 +1,3 @@
+[submodule "external/vitis-network-stack"]
+	path = external/vitis-network-stack
+	url = git@gitlab.inf.ethz.ch:kodario/vitis_network.git
