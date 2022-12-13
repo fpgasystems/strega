@@ -11,13 +11,13 @@ using namespace http;
 int main (int argc, char* argv[]) {
 
   const std::string input[TEST_SIZE] = {
-    "CONNECT / HTTP/2",
-    "DELETE / HTTP/2",
-    "GET / HTTP/2",
-    "HEAD / HTTP/2",
-    "OPTIONS / HTTP/2",
-    "POST / HTTP/2",
-    "PUT / HTTP/2",
+    "CONNECT / HTTP/1.1",
+    "DELETE / HTTP/1.1",
+    "GET / HTTP/1.1",
+    "HEAD / HTTP/1.1",
+    "OPTIONS / HTTP/1.1",
+    "POST / HTTP/1.1",
+    "PUT / HTTP/1.1",
     "WRONG"
   };
   
