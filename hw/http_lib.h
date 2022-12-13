@@ -69,12 +69,7 @@ enum class HttpStatus {
   BAD_GATEWAY_502,
   SERVICE_UNAVAILABLE_503,
   GATEWAY_TIMEOUT_504,
-  HTTP_VERSION_NOT_SUPPORTE_505D
-};
-
-enum class HttpPayloadType {
-  BODY,
-  HEADERS
+  HTTP_VERSION_NOT_SUPPORTED_505
 };
 
 //
@@ -102,6 +97,11 @@ struct http_headline_ospt {
   ap_uint<HTTP_DATA_WIDTH> endpoint;
 };
 
+struct http_status_code_ospt {
+  ap_uint<HTTP_DATA_WIDTH> data;
+  ap_uint<HTTP_DATA_WIDTH/8> keep;
+};
+
 //
 // request
 //
@@ -114,13 +114,6 @@ struct http_request_spt
   http_request_spt() {}
 };
 
-struct http_request_payload_spt
-{
-  HttpPayloadType type;
-  ap_uint<HTTP_DATA_WIDTH> data;
-  http_request_payload_spt() {}
-};
-
 //
 // response
 //
@@ -129,15 +122,9 @@ struct http_response_spt
 {
   http_meta meta;
   HttpStatus status_code;
-  ap_uint<HTTP_DATA_WIDTH> body_size;
+  ap_uint<16> body_size;
+  ap_uint<16> headers_size;
   http_response_spt() {}
-};
-
-struct http_response_payload_spt
-{
-  HttpPayloadType type;  
-  ap_uint<HTTP_DATA_WIDTH> data;
-  http_response_payload_spt() {}
 };
 
 } // namespace http

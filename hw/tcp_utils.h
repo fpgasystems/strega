@@ -39,11 +39,11 @@ struct tcp_notification_pkt {
   }
 };
 
-struct tcp_read_request_pkt {
+struct tcp_rxtx_request_pkt {
   ap_uint<16> sessionID;
   ap_uint<16> length;
-  tcp_read_request_pkt() {}
-  tcp_read_request_pkt(pkt32 raw)
+  tcp_rxtx_request_pkt() {}
+  tcp_rxtx_request_pkt(pkt32 raw)
     :sessionID(raw.data(15,0)),
     length(raw.data(31,16))
     { }
@@ -54,4 +54,27 @@ struct tcp_read_request_pkt {
     return val;
   }
 };
+
+struct tcp_tx_status_pkt {
+  ap_uint<16> sessionID;
+  ap_uint<16> length;
+  ap_uint<32> remaining_space;
+  ap_uint<2> error;
+  tcp_tx_status_pkt() {}
+  tcp_tx_status_pkt(pkt64 raw)
+    :sessionID(raw.data(15,0)),
+     length(raw.data(31,16)),
+     remaining_space(raw.data(61,32)),
+     error(raw.data(63,62))
+     { }
+  pkt64 serialise() {
+    pkt64 val;
+    val.data(15,0) = sessionID;
+    val.data(31,16) = length;
+    val.data(61,32) = remaining_space;
+    val.data(63,62) = error;
+    return val;
+  }
+};
+
 } // namespace http

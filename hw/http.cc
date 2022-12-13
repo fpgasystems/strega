@@ -4,6 +4,7 @@
 #include "http.h"
 #include "listen_port.h"
 #include "request_processor.h"
+#include "response_processor.h"
 
 namespace http {
 
@@ -15,9 +16,9 @@ void http_top (
   hls::stream<pkt32>& tcp_read_request,
   hls::stream<pkt16>& tcp_rx_meta,
   hls::stream<pkt512>& tcp_rx_data,
-  // hls::stream<pkt32>& tcp_tx_meta,
-  // hls::stream<pkt512>& tcp_tx_data,
-  // hls::stream<pkt64>& tcp_tx_status,
+  hls::stream<pkt32>& tcp_tx_meta,
+  hls::stream<pkt512>& tcp_tx_data,
+  hls::stream<pkt64>& tcp_tx_status,
   
   // // TCP-IP not used
   // hls::stream<pkt64>& tcp_open_connection,
@@ -30,7 +31,11 @@ void http_top (
 
   // APPLICATION
   hls::stream<http_request_spt>& http_request,
-  hls::stream<http_request_payload_spt>& http_request_payload
+  hls::stream<pkt512>& http_request_headers,
+  hls::stream<pkt512>& http_request_body,
+  hls::stream<http_response_spt>& http_response,
+  hls::stream<pkt512>& http_response_headers,
+  hls::stream<pkt512>& http_response_body
 ) {
 #pragma HLS INTERFACE ap_ctrl_none port=return
 #pragma HLS DATAFLOW disable_start_propagation
@@ -42,7 +47,8 @@ void http_top (
 #pragma HLS INTERFACE axis register port=tcp_rx_meta name=tcp_rx_meta
 #pragma HLS INTERFACE axis register port=tcp_rx_data name=tcp_rx_data
 #pragma HLS INTERFACE axis register port=http_request name=http_request
-#pragma HLS INTERFACE axis register port=http_request_payload name=http_request_payload
+#pragma HLS INTERFACE axis register port=http_request_headers name=http_request_headers
+#pragma HLS INTERFACE axis register port=http_request_body name=http_request_body
 
   listen_port(
     tcp_listen_req,
@@ -51,6 +57,7 @@ void http_top (
   );
 
   request_processor(
+    // TCP-IP
     tcp_notification,
     tcp_read_request,
     tcp_rx_meta,
@@ -58,9 +65,20 @@ void http_top (
     // INTERNAL
     // APPLICATION
     http_request,
-    http_request_payload);
+    http_request_headers,
+    http_request_body);
 
-  // response_processor
+  response_processor(
+    // TCP-IP
+    tcp_tx_meta,
+    tcp_tx_data,
+    tcp_tx_status,
+    // INTERNAL
+    // APPLICATION
+    http_response,
+    http_response_headers,
+    http_response_body
+  );
 }
 
 } // namespace http
