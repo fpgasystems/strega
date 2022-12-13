@@ -32,8 +32,8 @@ void listen_port (
 ) {
 #pragma HLS dataflow disable_start_propagation
 
-  listen_request_handler(tcp_listen_req, port);
-  listen_response_handler(tcp_listen_resp, port);
+  listen_request_handler(tcp_listen_req, port_number);
+  listen_response_handler(tcp_listen_resp);
 }
 
 } // namespace http

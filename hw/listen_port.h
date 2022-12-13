@@ -2,6 +2,7 @@
 /// @copyright This software is copyrighted under the BSD 3-Clause License.
 
 #pragma once
+#include <hls_stream.h>
 #include "tcp_utils.h"
 
 namespace http {
