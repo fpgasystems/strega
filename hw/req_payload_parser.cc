@@ -1,18 +1,28 @@
 /// @author Fabio Maschi (Department of Computer Science, ETH Zurich)
 /// @copyright This software is copyrighted under the BSD 3-Clause License.
 
+#include "req_payload_parser.h"
+
 namespace http {
 
 enum class fsm_state {
   INPUT_READ,
-  OUTPUT_WRITE
+  HEADER_WRITE,
+  BODY_WRITE
+};
+
+enum class fsm_data_state {
+  HEADER,
+  BODY
 };
 
 void req_payload_parser(
   hls::stream<pkt512>& input,
-  hls::stream<http_request_payload_spt>& output
+  hls::stream<pkt512>& headers,
+  hls::stream<pkt512>& body
 ) {
   static fsm_state state = fsm_state::INPUT_READ;
+  static fsm_data_state data_state = fsm_data_state::HEADER;
   static pkt512 line;
   #pragma HLS reset variable=state
   #pragma HLS reset variable=line off
@@ -22,20 +32,33 @@ void req_payload_parser(
     {
       if (!input.empty()) {
         line = input.read();
-        state = fsm_state::OUTPUT_WRITE;
+        if (data_state == fsm_data_state::HEADER) {
+          state = fsm_state::HEADER_WRITE;
+        } else {
+          state = fsm_state::BODY_WRITE;
+        }
       }
       break;
     }
-
-    case fsm_state::OUTPUT_WRITE:
+    case fsm_state::HEADER_WRITE:
     {
       // TODO
-      http_request_payload_spt result;
-      result.type = HttpPayloadType::BODY;
-      result.data = line.data;
-      output.write(result);
+      // if detected end of header, switch to body
+      headers.write(line);
       state = fsm_state::INPUT_READ;
+      data_state = fsm_data_state::BODY;
       break;
+    }
+    case fsm_state::BODY_WRITE:
+    {
+      body.write(line);
+
+      state = fsm_state::INPUT_READ;
+      if (line.last) {
+        data_state = fsm_data_state::HEADER;
+      } else {
+        data_state = fsm_data_state::BODY;
+      }
     }
   }
 }

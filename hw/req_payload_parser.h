@@ -8,9 +8,10 @@
 
 namespace http {
 
-void request_processor (
+void req_payload_parser (
   hls::stream<pkt512>& input,
-  hls::stream<http_request_payload_spt>& output
+  hls::stream<pkt512>& headers,
+  hls::stream<pkt512>& body
 );
 
 } // namespace http
