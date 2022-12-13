@@ -2,6 +2,7 @@
 /// @copyright This software is copyrighted under the BSD 3-Clause License.
 
 #include "request_processor.h"
+#include "req_payload_parser.h"
 #include "headline_parser.h"
 
 namespace http {
@@ -67,7 +68,7 @@ void state_machine(
       tcp_notification_pkt notif = tcp_notification_pkt(raw);
 
       if (notif.length != 0) {
-        tcp_read_request_pkt rreq;
+        tcp_rxtx_request_pkt rreq;
         rreq.sessionID = notif.sessionID;
         rreq.length = notif.length;
 
@@ -129,7 +130,8 @@ void request_processor (
   // INTERNAL
   // APPLICATION
   hls::stream<http_request_spt>& http_request,
-  hls::stream<http_request_payload_spt>& http_request_payload
+  hls::stream<pkt512>& http_request_headers,
+  hls::stream<pkt512>& http_request_body
 ) {
 #pragma HLS INTERFACE ap_ctrl_none port=return
 #pragma HLS DATAFLOW disable_start_propagation
@@ -159,7 +161,8 @@ void request_processor (
   
   req_payload_parser(
     payload_in,
-    http_request_payload);
+    http_request_headers,
+    http_request_body);
 }
 
 } // namespace http
