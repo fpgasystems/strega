@@ -2,5 +2,5 @@
 	path = vitis-network-stack
 	url = git@gitlab.inf.ethz.ch:kodario/vitis_network.git
 [submodule "external/xilinx-cmake"]
-	path = external/xilinx-cmake
+	path = xilinx-cmake
 	url = git@gitlab.inf.ethz.ch:maschif/xilinx-cmake.git
