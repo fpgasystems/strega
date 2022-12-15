@@ -86,17 +86,17 @@ void status_code_parser(
     case fsm_state::WRITE_OUTPUT:
     {
       http_status_code_ospt line;
-      uint uint_code = static_cast<uint>(status_code);
+      unsigned int uint_code = static_cast<unsigned int>(status_code);
 
       // prefix
-      for (uint i=0; i<PREFIX_LENGTH; i++) {
+      for (unsigned int i=0; i<PREFIX_LENGTH; i++) {
         #pragma HLS unroll
         line.data.range((i+1)*8-1, i*8) = prefix[i];
         line.keep.range(i, i) = 1;
       }
 
       // status code
-      for (uint i=PREFIX_LENGTH, j=0; i<PREFIX_LENGTH+STATUS_CODE_LENGTH; i++, j++)
+      for (unsigned int i=PREFIX_LENGTH, j=0; i<PREFIX_LENGTH+STATUS_CODE_LENGTH; i++, j++)
       {
         #pragma HLS unroll
         line.data.range((i+1)*8-1, i*8) = matrix[uint_code][j];
@@ -104,7 +104,7 @@ void status_code_parser(
       }
 
       // remaining
-      for (uint i=PREFIX_LENGTH+STATUS_CODE_LENGTH; i<64; i++)
+      for (unsigned int i=PREFIX_LENGTH+STATUS_CODE_LENGTH; i<64; i++)
       {
         #pragma HLS unroll
         line.keep.range(i, i) = 0;

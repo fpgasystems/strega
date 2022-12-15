@@ -17,14 +17,15 @@ enum class fsm_data_state {
 };
 
 void req_payload_parser(
-  hls::stream<pkt512>& input,
-  hls::stream<pkt512>& headers,
-  hls::stream<pkt512>& body
+  hls::stream<axi_stream_ispt>& input,
+  hls::stream<axi_stream_ispt>& headers,
+  hls::stream<axi_stream_ispt>& body
 ) {
   static fsm_state state = fsm_state::INPUT_READ;
   static fsm_data_state data_state = fsm_data_state::HEADER;
-  static pkt512 line;
+  static axi_stream_ispt line;
   #pragma HLS reset variable=state
+  #pragma HLS reset variable=data_state
   #pragma HLS reset variable=line off
 
   switch (state) {

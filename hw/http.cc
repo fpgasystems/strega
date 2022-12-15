@@ -19,36 +19,15 @@ void http_top (
   hls::stream<pkt32>& tcp_tx_meta,
   hls::stream<pkt512>& tcp_tx_data,
   hls::stream<pkt64>& tcp_tx_status,
-  
-  // // TCP-IP not used
-  // hls::stream<pkt64>& tcp_open_connection,
-  // hls::stream<pkt128>& tcp_open_status,
-  // hls::stream<pkt16>& tcp_close_connection,
-  // hls::stream<pkt512>& udp_rx,
-  // hls::stream<pkt512>& udp_tx,
-  // hls::stream<pkt256>& udp_rx_meta,
-  // hls::stream<pkt256>& udp_tx_meta,
-
-  // APPLICATION
+  // Application
   hls::stream<http_request_spt>& http_request,
-  hls::stream<pkt512>& http_request_headers,
-  hls::stream<pkt512>& http_request_body,
+  hls::stream<axi_stream_ispt>& http_request_headers,
+  hls::stream<axi_stream_ispt>& http_request_body,
   hls::stream<http_response_spt>& http_response,
-  hls::stream<pkt512>& http_response_headers,
-  hls::stream<pkt512>& http_response_body
+  hls::stream<axi_stream_ispt>& http_response_headers,
+  hls::stream<axi_stream_ispt>& http_response_body
 ) {
-#pragma HLS INTERFACE ap_ctrl_none port=return
 #pragma HLS DATAFLOW disable_start_propagation
-
-#pragma HLS INTERFACE axis register port=tcp_listen_req name=tcp_listen_req
-#pragma HLS INTERFACE axis register port=tcp_listen_rsp name=tcp_listen_rsp
-#pragma HLS INTERFACE axis register port=tcp_notification name=tcp_notification
-#pragma HLS INTERFACE axis register port=tcp_read_request name=tcp_read_request
-#pragma HLS INTERFACE axis register port=tcp_rx_meta name=tcp_rx_meta
-#pragma HLS INTERFACE axis register port=tcp_rx_data name=tcp_rx_data
-#pragma HLS INTERFACE axis register port=http_request name=http_request
-#pragma HLS INTERFACE axis register port=http_request_headers name=http_request_headers
-#pragma HLS INTERFACE axis register port=http_request_body name=http_request_body
 
   listen_port(
     tcp_listen_req,
@@ -62,8 +41,8 @@ void http_top (
     tcp_read_request,
     tcp_rx_meta,
     tcp_rx_data,
-    // INTERNAL
-    // APPLICATION
+    // Internal
+    // Application
     http_request,
     http_request_headers,
     http_request_body);
@@ -73,8 +52,8 @@ void http_top (
     tcp_tx_meta,
     tcp_tx_data,
     tcp_tx_status,
-    // INTERNAL
-    // APPLICATION
+    // Internal
+    // Application
     http_response,
     http_response_headers,
     http_response_body

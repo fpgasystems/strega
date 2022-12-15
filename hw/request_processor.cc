@@ -46,7 +46,7 @@ void state_machine(
   hls::stream<pkt512>& tcp_rx_data,
   hls::stream<http_session_spt>& req_session,
   hls::stream<http_headline_ispt>& headline,
-  hls::stream<pkt512>& payload_in
+  hls::stream<axi_stream_ispt>& payload_in
 ) {
 #pragma HLS PIPELINE II=1
 #pragma HLS INLINE off
@@ -130,16 +130,15 @@ void request_processor (
   // INTERNAL
   // APPLICATION
   hls::stream<http_request_spt>& http_request,
-  hls::stream<pkt512>& http_request_headers,
-  hls::stream<pkt512>& http_request_body
+  hls::stream<axi_stream_ispt>& http_request_headers,
+  hls::stream<axi_stream_ispt>& http_request_body
 ) {
-#pragma HLS INTERFACE ap_ctrl_none port=return
 #pragma HLS DATAFLOW disable_start_propagation
 
   static hls::stream<http_headline_ispt> headline_in("headline_in");
   static hls::stream<http_headline_ospt> headline_out("headline_out");
   static hls::stream<http_session_spt> req_session("req_session");
-  static hls::stream<pkt512> payload_in("payload_in");
+  static hls::stream<axi_stream_ispt> payload_in("payload_in");
 
   state_machine(
     tcp_notification,

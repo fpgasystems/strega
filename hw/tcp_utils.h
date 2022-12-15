@@ -77,4 +77,25 @@ struct tcp_tx_status_pkt {
   }
 };
 
+// internal AXI-stream
+
+struct axi_stream_ispt {
+  ap_uint<512> data;
+  ap_uint<512/8> keep;
+  bool last;
+  axi_stream_ispt() {}
+  axi_stream_ispt(pkt512 raw)
+    :data(raw.data),
+    keep(raw.keep),
+    last(raw.last)
+    { }
+  pkt512 serialise() {
+    pkt512 val;
+    val.data = data;
+    val.keep = keep;
+    val.last = last;
+    return val;
+  }
+};
+
 } // namespace http

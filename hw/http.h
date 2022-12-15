@@ -19,23 +19,13 @@ void http_top (
   hls::stream<pkt32>& tcp_tx_meta,
   hls::stream<pkt512>& tcp_tx_data,
   hls::stream<pkt64>& tcp_tx_status,
-  
-  // // TCP-IP not used
-  // hls::stream<pkt64>& tcp_open_connection,
-  // hls::stream<pkt128>& tcp_open_status,
-  // hls::stream<pkt16>& tcp_close_connection,
-  // hls::stream<pkt512>& udp_rx,
-  // hls::stream<pkt512>& udp_tx,
-  // hls::stream<pkt256>& udp_rx_meta,
-  // hls::stream<pkt256>& udp_tx_meta,
-
   // Application
   hls::stream<http_request_spt>& http_request,
-  hls::stream<pkt512>& http_request_headers,
-  hls::stream<pkt512>& http_request_body,
+  hls::stream<axi_stream_ispt>& http_request_headers,
+  hls::stream<axi_stream_ispt>& http_request_body,
   hls::stream<http_response_spt>& http_response,
-  hls::stream<pkt512>& http_response_headers,
-  hls::stream<pkt512>& http_response_body
+  hls::stream<axi_stream_ispt>& http_response_headers,
+  hls::stream<axi_stream_ispt>& http_response_body
   );
 
 } // namespace http

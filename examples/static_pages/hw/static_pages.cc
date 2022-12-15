@@ -1,9 +1,7 @@
 /// @author Fabio Maschi (Department of Computer Science, ETH Zurich)
 /// @copyright This software is copyrighted under the BSD 3-Clause License.
 
-#include <hls_stream.h>
-#include <http_lib.h>
-#include <tcp_utils.h>
+#include "static_pages.h"
 
 struct internal_pkt {
   http::http_meta meta;
@@ -12,15 +10,15 @@ struct internal_pkt {
 
 void process_request(
   hls::stream<http::http_request_spt>& http_request,
-  hls::stream<pkt512>& http_request_headers,
-  hls::stream<pkt512>& http_request_body,
+  hls::stream<http::axi_stream_ispt>& http_request_headers,
+  hls::stream<http::axi_stream_ispt>& http_request_body,
   hls::stream<internal_pkt>& strm_internal
 ) {
   bool service_running = true;
   do {
     if (!http_request.empty()) {
       http::http_request_spt request = http_request.read();
-      service_runnning = (request.method != http::HttpMethod::DELETE);
+      service_running = (request.method != http::HttpMethod::DELETE);
 
       internal_pkt internal;
       internal.meta = request.meta;
@@ -29,12 +27,12 @@ void process_request(
 
       bool last;
       do {
-        pkt512 tmp = http_request_headers.read();
+        http::axi_stream_ispt tmp = http_request_headers.read();
         last = tmp.last;
       } while (!last);
 
       do {
-        pkt512 tmp = http_request_body.read();
+        http::axi_stream_ispt tmp = http_request_body.read();
         last = tmp.last;
       } while (!last);
     }
@@ -43,10 +41,10 @@ void process_request(
 
 void process_response(
   hls::stream<http::http_response_spt>& http_response,
-  hls::stream<pkt512>& http_response_headers,
-  hls::stream<pkt512>& http_response_body,
+  hls::stream<http::axi_stream_ispt>& http_response_headers,
+  hls::stream<http::axi_stream_ispt>& http_response_body,
   hls::stream<internal_pkt>& strm_internal,
-  ap_uint<512>* mem_response,
+  //ap_uint<512>* mem_response,
   unsigned int header_length,
   unsigned int body_pointer,
   unsigned int body_length
@@ -65,13 +63,14 @@ void process_response(
       response.headers_size = 0;
       http_response.write(response);
 
-      pkt512 tmp;
+      http::axi_stream_ispt tmp;
       unsigned int mem_pointer = 0;
       unsigned int bytes_sent = 0;
 
       do {
         bytes_sent += (512/8);
-        tmp.data = mem_response[mem_pointer];
+        //tmp.data = mem_response[mem_pointer];
+        tmp.data = -1;
         tmp.last = (bytes_sent >= header_length);
         tmp.keep = -1;
         http_response_headers.write(tmp);
@@ -82,7 +81,8 @@ void process_response(
       bytes_sent = 0;
       do {
         bytes_sent += (512/8);
-        tmp.data = mem_response[mem_pointer];
+        //tmp.data = mem_response[mem_pointer];
+        tmp.data = -1;
         tmp.last = (bytes_sent >= body_length);
         tmp.keep = -1;
         http_response_body.write(tmp);
@@ -95,13 +95,13 @@ void process_response(
 void static_pages (
   // HTTP
   hls::stream<http::http_request_spt>& http_request,
-  hls::stream<pkt512>& http_request_headers,
-  hls::stream<pkt512>& http_request_body,
+  hls::stream<http::axi_stream_ispt>& http_request_headers,
+  hls::stream<http::axi_stream_ispt>& http_request_body,
   hls::stream<http::http_response_spt>& http_response,
-  hls::stream<pkt512>& http_response_headers,
-  hls::stream<pkt512>& http_response_body,
+  hls::stream<http::axi_stream_ispt>& http_response_headers,
+  hls::stream<http::axi_stream_ispt>& http_response_body,
   // Host
-  ap_uint<512>* mem_response,
+  //ap_uint<512>* mem_response,
   unsigned int header_length,
   unsigned int body_pointer,
   unsigned int body_length
@@ -121,7 +121,7 @@ void static_pages (
     http_response_headers,
     http_response_body,
     strm_internal,
-    mem_response,
+    //mem_response,
     header_length,
     body_pointer,
     body_length
