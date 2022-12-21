@@ -10,15 +10,15 @@ namespace http {
 
 void http_top (
   // TCP-IP
-  hls::stream<pkt16>& tcp_listen_req,
-  hls::stream<pkt8>& tcp_listen_rsp,
-  hls::stream<pkt128>& tcp_notification,
-  hls::stream<pkt32>& tcp_read_request,
-  hls::stream<pkt16>& tcp_rx_meta,
-  hls::stream<pkt512>& tcp_rx_data,
-  hls::stream<pkt32>& tcp_tx_meta,
-  hls::stream<pkt512>& tcp_tx_data,
-  hls::stream<pkt64>& tcp_tx_status,
+  hls::stream<ap_uint<16>>& tcp_listen_req,
+  hls::stream<bool>& tcp_listen_rsp,
+  hls::stream<tcp_notification_pkt>& tcp_notification,
+  hls::stream<tcp_rxtx_request_pkt>& tcp_read_request,
+  hls::stream<ap_uint<16>>& tcp_rx_meta,
+  hls::stream<ap_axiu<512, 0, 0, 0>>& tcp_rx_data,
+  hls::stream<tcp_rxtx_request_pkt>& tcp_tx_meta,
+  hls::stream<ap_axiu<512, 0, 0, 0>>& tcp_tx_data,
+  hls::stream<tcp_tx_status_pkt>& tcp_tx_status,
   // Application
   hls::stream<http_request_spt>& http_request,
   hls::stream<pkt512>& http_request_headers,

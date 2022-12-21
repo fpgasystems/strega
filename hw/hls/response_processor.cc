@@ -18,9 +18,9 @@ enum class fsm_state {
 };
 
 void state_machine(
-  hls::stream<pkt32>& tcp_tx_meta,
+  hls::stream<tcp_rxtx_request_pkt>& tcp_tx_meta,
   hls::stream<pkt512>& tcp_tx_data,
-  hls::stream<pkt64>& tcp_tx_status,
+  hls::stream<tcp_tx_status_pkt>& tcp_tx_status,
   // INTERNAL
   hls::stream<HttpStatus>& resp_status_code,
   hls::stream<http_status_code_ospt>& resp_status_line,
@@ -153,9 +153,9 @@ void state_machine(
 
 void response_processor (
   // TCP/IP
-  hls::stream<pkt32>& tcp_tx_meta,
+  hls::stream<tcp_rxtx_request_pkt>& tcp_tx_meta,
   hls::stream<pkt512>& tcp_tx_data,
-  hls::stream<pkt64>& tcp_tx_status,
+  hls::stream<tcp_tx_status_pkt>& tcp_tx_status,
   // INTERNAL
   // APPLICATION
   hls::stream<http_response_spt>& http_response,

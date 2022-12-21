@@ -2,7 +2,8 @@
 # @copyright This software is copyrighted under the BSD 3-Clause License.
 
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-project(fpga-http-server)
+project(fpga-http-server
+        VERSION 0.1)
 
 # Target options
 set(HTTP_PLATFORM "xilinx_u55c_gen3x16_xdma_3_202210_1" CACHE STRING "Platform string for Vitis.")
@@ -42,10 +43,37 @@ set(HTTP_SW_SOURCE_FILES
   "sw/host.cc")
 
 #
-# FindVitis
+# vitis-network-stack
 #
 
-# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
+set(HTTP_VNS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/vitis-network-stack)
+set(FDEV_NAME "u55c" CACHE STRING "FPGA Device Family")
+set(TCP_STACK_EN 1 CACHE BOOL "Enable TCP/IP stack")
+set(UDP_STACK_EN 0 CACHE BOOL "Enable UDP/IP stack")
+set(IPREPO_DIR ${HTTP_IP_DIR} CACHE STRING "IP build directory")
+
+add_subdirectory(vitis-network-stack)
+
+#
+# fpga-http-server ip
+#
+
+add_vitis_ip(http_top #${PROJECT_NAME}
+            FILES ${HTTP_HW_SOURCE_FILES} ${HTTP_HW_SOURCE_FILES_H}
+            TB_FILES
+              "hw/http.spec.cc"
+            PLATFORM ${HTTP_PLATFORM}
+            VENDOR "ethz.systems.fpga"
+            DISPLAY_NAME "FPGA HTTP Server Stack"
+            DESCRIPTION "Middleware between Application HTTP Request-Response and TCP-IP stack."
+            VERSION ${PROJECT_VERSION}
+            IP_DIR ${HTTP_IP_DIR})
+
+#
+# static-pages application
+#
+
+add_subdirectory(examples/static_pages)
 
 #
 # hlslib
@@ -58,18 +86,6 @@ set(HTTP_SW_SOURCE_FILES
 # find_package(Vitis REQUIRED)
 # include_directories(SYSTEM ${Vitis_INCLUDE_DIRS})
 
-#
-# vitis-network-stack
-#
-
-set(HTTP_VNS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/vitis-network-stack)
-set(FDEV_NAME "u55c" CACHE STRING "FPGA Device Family")
-set(TCP_STACK_EN 1 CACHE BOOL "Enable TCP/IP stack")
-set(UDP_STACK_EN 0 CACHE BOOL "Enable UDP/IP stack")
-set(IPREPO_DIR ${HTTP_IP_DIR} CACHE STRING "IP build directory")
-
-add_subdirectory(vitis-network-stack)
-
 # add_vitis_kernel(network
 #                  FILES hw/hls/headline_parser.cc hw/hls/http.cc hw/hls/listen_port.cc
 #                  hw/hls/method_parser.cc hw/hls/req_payload_parser.cc hw/hls/request_processor.cc
@@ -77,10 +93,6 @@ add_subdirectory(vitis-network-stack)
 #                  #DEPENDS include/MyHeader.h include/OtherDependency.h
 #                  #INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include hlslib/include
 #                  #PORT_MAPPING "ddr0:DDR[0]" "ddr1:DDR[1]")
-
-#
-# fpga-http-server kernel
-#
 
 # add_vitis_kernel(http
 #                  FILES ${HTTP_HW_SOURCE_FILES}

@@ -10,8 +10,8 @@ struct internal_pkt {
 
 void process_request(
   hls::stream<http::http_request_spt>& http_request,
-  hls::stream<http::axi_stream_ispt>& http_request_headers,
-  hls::stream<http::axi_stream_ispt>& http_request_body,
+  hls::stream<http::pkt512>& http_request_headers,
+  hls::stream<http::pkt512>& http_request_body,
   hls::stream<internal_pkt>& strm_internal
 ) {
   bool service_running = true;
@@ -27,12 +27,12 @@ void process_request(
 
       bool last;
       do {
-        http::axi_stream_ispt tmp = http_request_headers.read();
+        http::pkt512 tmp = http_request_headers.read();
         last = tmp.last;
       } while (!last);
 
       do {
-        http::axi_stream_ispt tmp = http_request_body.read();
+        http::pkt512 tmp = http_request_body.read();
         last = tmp.last;
       } while (!last);
     }
@@ -41,8 +41,8 @@ void process_request(
 
 void process_response(
   hls::stream<http::http_response_spt>& http_response,
-  hls::stream<http::axi_stream_ispt>& http_response_headers,
-  hls::stream<http::axi_stream_ispt>& http_response_body,
+  hls::stream<http::pkt512>& http_response_headers,
+  hls::stream<http::pkt512>& http_response_body,
   hls::stream<internal_pkt>& strm_internal,
   //ap_uint<512>* mem_response,
   unsigned int header_length,
@@ -63,7 +63,7 @@ void process_response(
       response.headers_size = 0;
       http_response.write(response);
 
-      http::axi_stream_ispt tmp;
+      http::pkt512 tmp;
       unsigned int mem_pointer = 0;
       unsigned int bytes_sent = 0;
 
@@ -95,17 +95,24 @@ void process_response(
 void static_pages (
   // HTTP
   hls::stream<http::http_request_spt>& http_request,
-  hls::stream<http::axi_stream_ispt>& http_request_headers,
-  hls::stream<http::axi_stream_ispt>& http_request_body,
+  hls::stream<http::pkt512>& http_request_headers,
+  hls::stream<http::pkt512>& http_request_body,
   hls::stream<http::http_response_spt>& http_response,
-  hls::stream<http::axi_stream_ispt>& http_response_headers,
-  hls::stream<http::axi_stream_ispt>& http_response_body,
+  hls::stream<http::pkt512>& http_response_headers,
+  hls::stream<http::pkt512>& http_response_body,
   // Host
   //ap_uint<512>* mem_response,
   unsigned int header_length,
   unsigned int body_pointer,
   unsigned int body_length
 ) {
+#pragma HLS INTERFACE axis port=http_request
+#pragma HLS INTERFACE axis port=http_request_headers
+#pragma HLS INTERFACE axis port=http_request_body
+#pragma HLS INTERFACE axis port=http_response
+#pragma HLS INTERFACE axis port=http_response_headers
+#pragma HLS INTERFACE axis port=http_response_body
+
 #pragma HLS dataflow
 
   static hls::stream<internal_pkt> strm_internal("strm_internal");

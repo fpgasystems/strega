@@ -10,15 +10,15 @@ namespace http {
 
 void http_top (
   // TCP-IP
-  hls::stream<pkt16>& tcp_listen_req,
-  hls::stream<pkt8>& tcp_listen_rsp,
-  hls::stream<pkt128>& tcp_notification,
-  hls::stream<pkt32>& tcp_read_request,
-  hls::stream<pkt16>& tcp_rx_meta,
+  hls::stream<ap_uint<16>>& tcp_listen_req,
+  hls::stream<bool>& tcp_listen_rsp,
+  hls::stream<tcp_notification_pkt>& tcp_notification,
+  hls::stream<tcp_rxtx_request_pkt>& tcp_read_request,
+  hls::stream<ap_uint<16>>& tcp_rx_meta,
   hls::stream<pkt512>& tcp_rx_data,
-  hls::stream<pkt32>& tcp_tx_meta,
+  hls::stream<tcp_rxtx_request_pkt>& tcp_tx_meta,
   hls::stream<pkt512>& tcp_tx_data,
-  hls::stream<pkt64>& tcp_tx_status,
+  hls::stream<tcp_tx_status_pkt>& tcp_tx_status,
   // Application
   hls::stream<http_request_spt>& http_request,
   hls::stream<pkt512>& http_request_headers,
@@ -27,6 +27,23 @@ void http_top (
   hls::stream<pkt512>& http_response_headers,
   hls::stream<pkt512>& http_response_body
 ) {
+#pragma HLS INTERFACE axis port=tcp_listen_req
+#pragma HLS INTERFACE axis port=tcp_listen_rsp
+#pragma HLS INTERFACE axis port=tcp_notification
+#pragma HLS INTERFACE axis port=tcp_read_request
+#pragma HLS INTERFACE axis port=tcp_rx_meta
+#pragma HLS INTERFACE axis port=tcp_rx_data
+#pragma HLS INTERFACE axis port=tcp_tx_meta
+#pragma HLS INTERFACE axis port=tcp_tx_data
+#pragma HLS INTERFACE axis port=tcp_tx_status
+#pragma HLS INTERFACE axis port=http_request
+#pragma HLS INTERFACE axis port=http_request_headers
+#pragma HLS INTERFACE axis port=http_request_body
+#pragma HLS INTERFACE axis port=http_response
+#pragma HLS INTERFACE axis port=http_response_headers
+#pragma HLS INTERFACE axis port=http_response_body
+
+#pragma HLS INTERFACE ap_ctrl_none port=return
 #pragma HLS DATAFLOW disable_start_propagation
 
   listen_port(

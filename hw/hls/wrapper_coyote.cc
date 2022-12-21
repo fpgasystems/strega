@@ -2,9 +2,9 @@
 /// @copyright This software is copyrighted under the BSD 3-Clause License.
 
 #include <hls_stream.h>
-#include <stdint.h>
-#include <fstream>
-#include <iomanip>
+// #include <stdint.h>
+// #include <fstream>
+// #include <iomanip>
 #include "ap_axi_sdata.h"
 
 #include "ap_int.h"
@@ -104,7 +104,15 @@ void wrapper_coyote (
     // ap_axiu<AXI_DATA_BITS, 0, PID_BITS, 0> tmp_axis_tcp_0_sink = axis_tcp_0_sink.read();
     // axis_tcp_0_src.write(ap_axiu<AXI_DATA_BITS, 0, PID_BITS, 0>());
 
-    http(
+    // HTTP <-> Application streams
+    hls::stream<http::http_request_spt> http_request("http_request");
+    hls::stream<http::axi_stream_ispt> http_request_headers("http_request_headers");
+    hls::stream<http::axi_stream_ispt> http_request_body("http_request_body");
+    hls::stream<http::http_response_spt> http_response("http_response");
+    hls::stream<http::axi_stream_ispt> http_response_headers("http_response_headers");
+    hls::stream<http::axi_stream_ispt> http_response_body("http_response_body");
+
+    http::http_top(
       // TCP-IP
       tcp_0_listen_req
       tcp_0_listen_rsp,
@@ -124,4 +132,15 @@ void wrapper_coyote (
       hls::stream<pkt512>& http_response_body
     );
 
+    static_pages(
+      http_request,
+      http_request_headers,
+      http_request_body,
+      http_response,
+      http_response_headers,
+      http_response_body,
+      128,
+      0,
+      256
+    );
 } 

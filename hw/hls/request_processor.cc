@@ -36,9 +36,9 @@ void request_issuer(
 }
 
 void state_machine(
-  hls::stream<pkt128>& tcp_notification,
-  hls::stream<pkt32>& tcp_read_request,
-  hls::stream<pkt16>& tcp_rx_meta,
+  hls::stream<tcp_notification_pkt>& tcp_notification,
+  hls::stream<tcp_rxtx_request_pkt>& tcp_read_request,
+  hls::stream<ap_uint<16>>& tcp_rx_meta,
   hls::stream<pkt512>& tcp_rx_data,
   hls::stream<http_session_spt>& req_session,
   hls::stream<http_headline_ispt>& headline,
@@ -58,8 +58,7 @@ void state_machine(
 
     case fsm_state::NOTIFICATION:
     {
-      pkt128 raw = tcp_notification.read();
-      tcp_notification_pkt notif = tcp_notification_pkt(raw);
+      tcp_notification_pkt notif = tcp_notification.read();
 
       if (notif.length != 0) {
         tcp_rxtx_request_pkt rreq;
@@ -69,7 +68,7 @@ void state_machine(
         http_session_spt session;
         session.id = notif.sessionID;
 
-        tcp_read_request.write(rreq.serialise());
+        tcp_read_request.write(rreq);
         req_session.write(session);
 
         state = fsm_state::META;
@@ -81,7 +80,7 @@ void state_machine(
 
     case fsm_state::META:
     {
-      pkt16 tmp = tcp_rx_meta.read();
+      ap_uint<16> tmp = tcp_rx_meta.read();
       state = fsm_state::DATA_HEADLINE;
       break;
     }
@@ -111,9 +110,9 @@ void state_machine(
 
 void request_processor (
   // TCP/IP
-  hls::stream<pkt128>& tcp_notification,
-  hls::stream<pkt32>& tcp_read_request,
-  hls::stream<pkt16>& tcp_rx_meta,
+  hls::stream<tcp_notification_pkt>& tcp_notification,
+  hls::stream<tcp_rxtx_request_pkt>& tcp_read_request,
+  hls::stream<ap_uint<16>>& tcp_rx_meta,
   hls::stream<pkt512>& tcp_rx_data,
   // INTERNAL
   // APPLICATION

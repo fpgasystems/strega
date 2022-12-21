@@ -8,8 +8,8 @@
 namespace http {
 
 void listen_port (
-  hls::stream<pkt16>& tcp_listen_req,
-  hls::stream<pkt8>& tcp_listen_resp,
+  hls::stream<ap_uint<16>>& tcp_listen_req,
+  hls::stream<bool>& tcp_listen_rsp,
   ap_uint<16> port_number
 );
 

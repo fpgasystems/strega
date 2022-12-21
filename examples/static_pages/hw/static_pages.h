@@ -9,11 +9,11 @@
 void static_pages (
   // HTTP
   hls::stream<http::http_request_spt>& http_request,
-  hls::stream<http::axi_stream_ispt>& http_request_headers,
-  hls::stream<http::axi_stream_ispt>& http_request_body,
+  hls::stream<http::pkt512>& http_request_headers,
+  hls::stream<http::pkt512>& http_request_body,
   hls::stream<http::http_response_spt>& http_response,
-  hls::stream<http::axi_stream_ispt>& http_response_headers,
-  hls::stream<http::axi_stream_ispt>& http_response_body,
+  hls::stream<http::pkt512>& http_response_headers,
+  hls::stream<http::pkt512>& http_response_body,
   // Host
   // ap_uint<512>* mem_response,
   unsigned int header_length,
