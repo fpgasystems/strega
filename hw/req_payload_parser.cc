@@ -6,14 +6,10 @@
 namespace http {
 
 enum class fsm_state {
-  INPUT_READ,
+  HEADER_READ,
   HEADER_WRITE,
+  BODY_READ,
   BODY_WRITE
-};
-
-enum class fsm_data_state {
-  HEADER,
-  BODY
 };
 
 void req_payload_parser(
@@ -21,23 +17,17 @@ void req_payload_parser(
   hls::stream<axi_stream_ispt>& headers,
   hls::stream<axi_stream_ispt>& body
 ) {
-  static fsm_state state = fsm_state::INPUT_READ;
-  static fsm_data_state data_state = fsm_data_state::HEADER;
+  static fsm_state state = fsm_state::HEADER_READ;
   static axi_stream_ispt line;
   #pragma HLS reset variable=state
-  #pragma HLS reset variable=data_state
   #pragma HLS reset variable=line off
 
   switch (state) {
-    case fsm_state::INPUT_READ:
+    case fsm_state::HEADER_READ:
     {
       if (!input.empty()) {
         line = input.read();
-        if (data_state == fsm_data_state::HEADER) {
-          state = fsm_state::HEADER_WRITE;
-        } else {
-          state = fsm_state::BODY_WRITE;
-        }
+        state = fsm_state::HEADER_WRITE;
       }
       break;
     }
@@ -46,19 +36,23 @@ void req_payload_parser(
       // TODO
       // if detected end of header, switch to body
       headers.write(line);
-      state = fsm_state::INPUT_READ;
-      data_state = fsm_data_state::BODY;
+      state = fsm_state::BODY_READ;
+      break;
+    }
+    case fsm_state::BODY_READ:
+    {
+      line = input.read();
+      state = fsm_state::BODY_WRITE;
       break;
     }
     case fsm_state::BODY_WRITE:
     {
       body.write(line);
 
-      state = fsm_state::INPUT_READ;
       if (line.last) {
-        data_state = fsm_data_state::HEADER;
+        state = fsm_state::HEADER_READ;
       } else {
-        data_state = fsm_data_state::BODY;
+        state = fsm_state::BODY_READ;
       }
     }
   }

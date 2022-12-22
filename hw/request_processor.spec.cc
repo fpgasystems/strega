@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <string>
-#include "http.h"
+#include "request_processor.h"
 #include "http_lib.h"
 
 using namespace http;
@@ -14,21 +14,13 @@ int main (int argc, char* argv[]) {
   // top-level streams
   //
 
-  hls::stream<pkt16> tcp_listen_req("tcp_listen_req");
-  hls::stream<pkt8> tcp_listen_rsp("tcp_listen_rsp");
   hls::stream<pkt128> tcp_notification("tcp_notification");
   hls::stream<pkt32> tcp_read_request("tcp_read_request");
   hls::stream<pkt16> tcp_rx_meta("tcp_rx_meta");
   hls::stream<pkt512> tcp_rx_data("tcp_rx_data");
-  hls::stream<pkt32> tcp_tx_meta("tcp_tx_meta");
-  hls::stream<pkt512> tcp_tx_data("tcp_tx_data");
-  hls::stream<pkt64> tcp_tx_status("tcp_tx_status");
   hls::stream<http_request_spt> http_request("http_request");
   hls::stream<axi_stream_ispt> http_request_headers("http_request_headers");
   hls::stream<axi_stream_ispt> http_request_body("http_request_body");
-  hls::stream<http_response_spt> http_response("http_response");
-  hls::stream<axi_stream_ispt> http_response_headers("http_response_headers");
-  hls::stream<axi_stream_ispt> http_response_body("http_response_body");
 
   //
   // mock data
@@ -76,7 +68,7 @@ int main (int argc, char* argv[]) {
   //
 
   bool global_test = true;
-  for (int i=0; i<3; i++) {    
+  for (int i=0; i<TEST_SIZE; i++) {    
     bool this_test = true;
 
     tcp_notification_pkt notif;
@@ -102,39 +94,35 @@ int main (int argc, char* argv[]) {
     for (int j=0; j<payload_size; j++) {
       auto jline = j % 64;
       rx_data.data((jline+1)*8-1, jline*8) = payload.at(j);
+      // std::cout << payload.at(j);
 
       if ((((j+1) % 64 == 0)) || (j == payload_size - 1)) {
+        // std::cout << std::endl << "*****" << std::endl;
         rx_data.last = (j == payload_size - 1);
         tcp_rx_data.write(rx_data);
       }
     }
 
+    bool last = false;
     do {
-      pkt8 listen_rsp_pkt;
-      tcp_listen_rsp.write(listen_rsp_pkt);
-
-      http_top(
-        tcp_listen_req,
-        tcp_listen_rsp,
+      request_processor(
         tcp_notification,
         tcp_read_request,
         tcp_rx_meta,
         tcp_rx_data,
-        tcp_tx_meta,
-        tcp_tx_data,
-        tcp_tx_status,
         http_request,
         http_request_headers,
-        http_request_body,
-        http_response,
-        http_response_headers,
-        http_response_body
+        http_request_body
       );
-
-      if (!tcp_listen_req.empty()) {
-        tcp_listen_req.read();
+      if (!http_request_body.empty()) {
+        auto raw = http_request_body.read();
+        // for (int i=0; i<512/8; i++) {
+        //   std::cout << (char)raw.data(i*8+7, i*8);
+        // }
+        last = raw.last;
       }
-    } while (!tcp_rx_data.empty()); // http_request.empty()
+    } while (!last);
+    // std::cout << std::endl;
 
     tcp_rxtx_request_pkt read_request = tcp_read_request.read();
     if (read_request.sessionID != notif.sessionID) {
@@ -165,21 +153,13 @@ int main (int argc, char* argv[]) {
       std::cerr << "ERROR: [" << i << "][http_request.endpoint]" << std::endl;
     }*/
 
-    std::cout << "HEADERS=";
+    // std::cout << "HEADERS=";
     while (!http_request_headers.empty()) {
       auto raw = http_request_headers.read();
-      for (int i=0; i<512/64; i++) {
-        std::cout << (char)raw.data(i*8+7, i*8);
-      }
+      // for (int i=0; i<512/8; i++) {
+      //   std::cout << (char)raw.data(i*8+7, i*8);
+      // }
     }
-    std::cout << std::endl << "BODY=";
-    while (!http_request_body.empty()) {
-      auto raw = http_request_body.read();
-      for (int i=0; i<512/64; i++) {
-        std::cout << (char)raw.data(i*8+7, i*8);
-      }
-    }
-    std::cout << std::endl;
 
     if (this_test) {
       std::cout << "PASS: TEST[" << i << "]" << std::endl;

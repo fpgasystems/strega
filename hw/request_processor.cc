@@ -11,12 +11,8 @@ enum class fsm_state {
   IDLE,
   NOTIFICATION,
   META,
-  DATA
-};
-
-enum class fsm_state_data {
-  HEADLINE,
-  PAYLOAD
+  DATA_HEADLINE,
+  DATA_PAYLOAD
 };
 
 void request_issuer(
@@ -51,9 +47,7 @@ void state_machine(
 #pragma HLS PIPELINE II=1
 #pragma HLS INLINE off
   static fsm_state state = fsm_state::IDLE;
-  static fsm_state_data data_state = fsm_state_data::HEADLINE;
   #pragma HLS reset variable=state
-  #pragma HLS reset variable=data_state
 
   switch (state) {
     case fsm_state::IDLE:
@@ -88,33 +82,27 @@ void state_machine(
     case fsm_state::META:
     {
       pkt16 tmp = tcp_rx_meta.read();
-      state = fsm_state::DATA;
+      state = fsm_state::DATA_HEADLINE;
       break;
     }
 
-    case fsm_state::DATA:
+    case fsm_state::DATA_HEADLINE:
+    {
+      pkt512 raw = tcp_rx_data.read();      
+      http_headline_ispt pkt;
+      pkt.line = raw.data;
+      headline.write(pkt);
+      state = fsm_state::DATA_PAYLOAD;
+      
+      break;
+    }
+
+    case fsm_state::DATA_PAYLOAD:
     {
       pkt512 raw = tcp_rx_data.read();
-
-      switch (data_state) {
-        case fsm_state_data::HEADLINE:
-        {
-          http_headline_ispt pkt;
-          pkt.line = raw.data;
-          headline.write(pkt);
-          data_state = fsm_state_data::PAYLOAD;
-          break;
-        }
-
-        case fsm_state_data::PAYLOAD:
-        {
-          payload_in.write(raw);
-          if (raw.last) {
-            data_state = fsm_state_data::HEADLINE;
-            state = fsm_state::IDLE;
-          }
-          break;
-        }
+      payload_in.write(raw);
+      if (raw.last) {
+        state = fsm_state::IDLE;
       }
       break;
     }

@@ -17,11 +17,6 @@ enum class fsm_state {
   DATA_EOF
 };
 
-enum class fsm_state_data {
-  HEADLINE,
-  PAYLOAD
-};
-
 void state_machine(
   hls::stream<pkt32>& tcp_tx_meta,
   hls::stream<pkt512>& tcp_tx_data,
@@ -37,9 +32,7 @@ void state_machine(
 #pragma HLS PIPELINE II=1
 #pragma HLS INLINE off
   static fsm_state state = fsm_state::IDLE;
-  ap_uint<16> sessionID;
   #pragma HLS reset variable=state
-  #pragma HLS reset variable=sessionID off
 
   switch (state) {
     case fsm_state::IDLE:
@@ -51,11 +44,12 @@ void state_machine(
     case fsm_state::APPLICATION_RESPONSE:
     {
       http_response_spt raw = http_response.read();
-      sessionID = raw.meta.sessionID;
       resp_status_code.write(raw.status_code);
-      // raw.http_meta meta;
-      // raw.body_size;
-      // raw.headers_size;
+
+      tcp_rxtx_request_pkt meta;
+      meta.sessionID = raw.meta.sessionID;
+      meta.length = raw.body_size + raw.headers_size; // TOOD + status code + end of lines
+      tcp_tx_meta.write(meta.serialise());
 
       state = fsm_state::META;
       break;
@@ -63,11 +57,6 @@ void state_machine(
 
     case fsm_state::META:
     {
-      tcp_rxtx_request_pkt meta;
-      meta.sessionID = sessionID;
-      meta.length = 0; // body + headers + status + end of lines
-      tcp_tx_meta.write(meta.serialise());
-
       tcp_tx_status_pkt tx_status = tcp_tx_status.read();
       state = fsm_state::DATA_HTTP_STATUS;
       // TODO handle error
@@ -93,14 +82,16 @@ void state_machine(
 
     case fsm_state::DATA_HTTP_STATUS:
     {
-      http_status_code_ospt tmp = resp_status_line.read();
-      pkt512 raw;
-      raw.data = tmp.data;
-      raw.keep = tmp.keep;
-      raw.last = false;
-      tcp_tx_data.write(raw);
+      if (!resp_status_line.empty()) {
+        http_status_code_ospt tmp = resp_status_line.read();
+        pkt512 raw;
+        raw.data = tmp.data;
+        raw.keep = tmp.keep;
+        raw.last = false;
+        tcp_tx_data.write(raw);
 
-      state = fsm_state::DATA_HEADERS;
+        state = fsm_state::DATA_HEADERS;
+      }
       break;
     }
 
@@ -140,7 +131,7 @@ void state_machine(
       out.last = false;
       tcp_tx_data.write(out);
 
-      state = (in.last) ? fsm_state::DATA_DIVIDER : fsm_state::DATA_HEADERS;
+      state = (in.last) ? fsm_state::DATA_EOF : fsm_state::DATA_BODY;
       break;
     }
 
