@@ -2,11 +2,13 @@
 /// @copyright This software is copyrighted under the BSD 3-Clause License.
 
 #pragma once
-#include <ap_axi_sdata.h>
+#include "ap_axi_sdata.h"
 
 namespace http {
 
+// typedef hls::axis<ap_uint<512>, 0, 0, 0> pkt512;
 typedef ap_axiu<512, 0, 0, 0> pkt512;
+// typedef ap_axiu<512, 0, 0, 0> pkt512;
 // typedef ap_axiu<256, 0, 0, 0> pkt256;
 // typedef ap_axiu<128, 0, 0, 0> pkt128;
 // typedef ap_axiu<64, 0, 0, 0> pkt64;

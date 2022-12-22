@@ -53,7 +53,7 @@ EMU_DIR = $(SDCARD)/data/emulation
 
 ############################## Declaring Binary Containers ##############################
 BINARY_CONTAINERS += $(BUILD_DIR)/${XCLBIN_NAME}.xclbin
-BINARY_CONTAINER_krnl_dump_OBJS += $(BUILD_DIR)/http.xo $(BUILD_DIR)/cmac_krnl.xo $(BUILD_DIR)/network_krnl.xo $(BUILD_DIR)/static_pages.xo
+BINARY_CONTAINER_krnl_dump_OBJS += $(BUILD_DIR)/cmac_krnl.xo $(BUILD_DIR)/network_krnl.xo $(BUILD_DIR)/static_pages.xo
 
 ############################## Cleaning Rules ##############################
 # Cleaning stuff

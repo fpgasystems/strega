@@ -6,7 +6,8 @@ project(fpga-http-server
         VERSION 0.1)
 
 # Target options
-set(HTTP_PLATFORM "xilinx_u55c_gen3x16_xdma_3_202210_1" CACHE STRING "Platform string for Vitis.")
+#set(HTTP_PLATFORM "xilinx_u55c_gen3x16_xdma_3_202210_1" CACHE STRING "Platform string for Vitis.")
+set(HTTP_PLATFORM_PART "xcu55c-fsvh2892-2L-e" CACHE STRING "LALAL")
 option(HTTP_ENABLE_PROFILING "Collect profiling information." OFF)
 option(HTTP_ENABLE_DEBUGGING "Inject debugging cores to design." OFF)
 
@@ -62,7 +63,7 @@ add_vitis_ip(http_top #${PROJECT_NAME}
             FILES ${HTTP_HW_SOURCE_FILES} ${HTTP_HW_SOURCE_FILES_H}
             TB_FILES
               "hw/http.spec.cc"
-            PLATFORM ${HTTP_PLATFORM}
+            PLATFORM_PART ${HTTP_PLATFORM_PART}
             VENDOR "ethz.systems.fpga"
             DISPLAY_NAME "FPGA HTTP Server Stack"
             DESCRIPTION "Middleware between Application HTTP Request-Response and TCP-IP stack."
