@@ -93,20 +93,20 @@ set_property interface_mode slave [ipx::get_bus_interfaces tcp_port_status -of_o
 set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_port_status -of_objects [ipx::current_core]]
 ipx::associate_bus_interfaces -busif tcp_port_status -clock ap_clk [ipx::current_core]
 
-ipx::add_bus_interface tcp_open_connection [ipx::current_core]
-set_property interface_mode master [ipx::get_bus_interfaces tcp_open_connection -of_objects [ipx::current_core]]
-set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_open_connection -of_objects [ipx::current_core]]
-ipx::associate_bus_interfaces -busif tcp_open_connection -clock ap_clk [ipx::current_core]
+ipx::add_bus_interface tcp_open_conn [ipx::current_core]
+set_property interface_mode master [ipx::get_bus_interfaces tcp_open_conn -of_objects [ipx::current_core]]
+set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_open_conn -of_objects [ipx::current_core]]
+ipx::associate_bus_interfaces -busif tcp_open_conn -clock ap_clk [ipx::current_core]
 
 ipx::add_bus_interface tcp_open_status [ipx::current_core]
 set_property interface_mode slave [ipx::get_bus_interfaces tcp_open_status -of_objects [ipx::current_core]]
 set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_open_status -of_objects [ipx::current_core]]
 ipx::associate_bus_interfaces -busif tcp_open_status -clock ap_clk [ipx::current_core]
 
-ipx::add_bus_interface tcp_close_connection [ipx::current_core]
-set_property interface_mode master [ipx::get_bus_interfaces tcp_close_connection -of_objects [ipx::current_core]]
-set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_close_connection -of_objects [ipx::current_core]]
-ipx::associate_bus_interfaces -busif tcp_close_connection -clock ap_clk [ipx::current_core]
+ipx::add_bus_interface tcp_close_conn [ipx::current_core]
+set_property interface_mode master [ipx::get_bus_interfaces tcp_close_conn -of_objects [ipx::current_core]]
+set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_close_conn -of_objects [ipx::current_core]]
+ipx::associate_bus_interfaces -busif tcp_close_conn -clock ap_clk [ipx::current_core]
 
 ipx::add_bus_interface tcp_notification [ipx::current_core]
 set_property interface_mode slave [ipx::get_bus_interfaces tcp_notification -of_objects [ipx::current_core]]

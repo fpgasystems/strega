@@ -11,6 +11,26 @@ project(static_pages
 # static_pages
 #
 
+set(APP_HW_HLS_SOURCE_FILES
+  "hw/static_pages.cc")
+
+set(APP_HW_HLS_SOURCE_FILES_H
+  "hw/static_pages.h")
+
+add_custom_target(kernel.static_pages
+  COMMENT "Exporting kernel static_pages to .xo"
+  COMMAND ${Vitis_COMPILER} -c -k static_pages
+          -o ${CMAKE_BINARY_DIR}/kernels/static_pages.xo
+          --input_files ${CMAKE_CURRENT_SOURCE_DIR}/${APP_HW_HLS_SOURCE_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/${APP_HW_HLS_SOURCE_FILES_H}
+          --platform ${HTTP_PLATFORM}
+  DEPENDS ${APP_HW_HLS_SOURCE_FILES} ${APP_HW_HLS_SOURCE_FILES_H})
+
+add_dependencies(kernel kernel.static_pages)
+
+
+
+
+
 # add_vitis_ip(${PROJECT_NAME}
 #             FILES "hw/static_pages.cc" "hw/static_pages.h"
 #             PLATFORM_PART ${HTTP_PLATFORM_PART}

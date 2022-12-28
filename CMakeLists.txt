@@ -6,7 +6,7 @@ project(fpga-http-server
         VERSION 0.1)
 
 # Target options
-#set(HTTP_PLATFORM "xilinx_u55c_gen3x16_xdma_3_202210_1" CACHE STRING "Platform string for Vitis.")
+set(HTTP_PLATFORM "xilinx_u55c_gen3x16_xdma_3_202210_1" CACHE STRING "Platform string for Vitis.")
 set(HTTP_PLATFORM_PART "xcu55c-fsvh2892-2L-e" CACHE STRING "LALAL")
 set(HTTP_IP_NAME "http_top" CACHE STRING "HTTP IP top module")
 set(HTTP_KERNEL_NAME "http" CACHE STRING "HTTP Kernel name")
@@ -60,7 +60,7 @@ set(FDEV_NAME "u55c" CACHE STRING "FPGA Device Family")
 set(TCP_STACK_EN 1 CACHE BOOL "Enable TCP/IP stack")
 set(UDP_STACK_EN 0 CACHE BOOL "Enable UDP/IP stack")
 set(IPREPO_DIR ${HTTP_IP_DIR} CACHE STRING "IP build directory")
-set(KERNEL_DIR ${HTTP_KERNEL_DIR} CACHE STRING "Kernel build directory")
+set(VNS_KERNEL_DIR ${HTTP_KERNEL_DIR} CACHE STRING "Kernel build directory")
 
 add_subdirectory(vitis-network-stack)
 
@@ -107,6 +107,32 @@ add_dependencies(${HTTP_KERNEL_CMD} ${HTTP_KERNEL_CMD}.${HTTP_KERNEL_NAME})
 
 add_subdirectory(examples/static_pages)
 
+#
+# program bitstream
+#
+
+set(PROGRAM_BITSTREAM "${CMAKE_BINARY_DIR}/artifacts/http.xclbin")
+set(PROGRAM_VPP_FLAGS "--save-temps")
+set(PROGRAM_VPP_LDFLAGS "")
+set(PROGRAM_TEMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/tmp_xclbin")
+
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tmp_xclbin/http.link.xclbin
+    COMMENT "Linking bitstream .xclbin"
+    COMMAND ${Vitis_COMPILER} ${PROGRAM_VPP_FLAGS} -l ${PROGRAM_VPP_LDFLAGS} --temp_dir ${PROGRAM_TEMP_DIR}
+            -o ${PROGRAM_TEMP_DIR}/http.link.xclbin
+            ${HTTP_KERNEL_DIR}/http.xo ${HTTP_KERNEL_DIR}/cmac_krnl.xo ${HTTP_KERNEL_DIR}/network_krnl.xo ${HTTP_KERNEL_DIR}/static_pages.xo
+            --advanced.param compiler.userPostDebugProfileOverlayTcl=${CMAKE_CURRENT_BINARY_DIR}/vitis-network-stack/scripts/post_sys_link.tcl
+            --config ${CMAKE_CURRENT_SOURCE_DIR}/hw/vitis/connectivity.cfg
+            --platform ${HTTP_PLATFORM})
+
+add_custom_command(OUTPUT ${PROGRAM_BITSTREAM}
+  COMMENT "Building bitstream .xclbin"
+  COMMAND ${Vitis_COMPILER} -p ${CMAKE_CURRENT_BINARY_DIR}/tmp_xclbin/http.link.xclbin -t hw --platform ${HTTP_PLATFORM}
+          -o ${PROGRAM_BITSTREAM}
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/tmp_xclbin/http.link.xclbin)
+
+add_custom_target(bitstream
+  DEPENDS ${PROGRAM_BITSTREAM})
 #
 # hlslib
 #
