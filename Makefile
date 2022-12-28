@@ -1,14 +1,6 @@
-############################## Help Section ##############################
-.PHONY: help
-
-help::
-	$(ECHO) "Makefile Usage:"
-
 ############################## Setting up Project Variables ##############################
 
 TARGET := hw
-HOST_ARCH := x86
-SYSROOT :=
 PLATFORM ?= xilinx_u55c_gen3x16_xdma_3_202210_1
 
 XCLBIN_NAME = http
@@ -72,7 +64,6 @@ TESTBENCH_OUT := $$($(TESTBENCH_RUN) 2>&1 | sed -E -e 's/ERROR/\\\e[1;31mERROR\\
 .PHONY: vv
 vv:
 	@echo -e "${TESTBENCH_OUT}"
-
 
 
 .PHONY: http

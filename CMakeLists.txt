@@ -8,6 +8,8 @@ project(fpga-http-server
 # Target options
 #set(HTTP_PLATFORM "xilinx_u55c_gen3x16_xdma_3_202210_1" CACHE STRING "Platform string for Vitis.")
 set(HTTP_PLATFORM_PART "xcu55c-fsvh2892-2L-e" CACHE STRING "LALAL")
+set(HTTP_IP_NAME "http_top" CACHE STRING "HTTP IP top module")
+set(HTTP_KERNEL_NAME "http" CACHE STRING "HTTP Kernel name")
 option(HTTP_ENABLE_PROFILING "Collect profiling information." OFF)
 option(HTTP_ENABLE_DEBUGGING "Inject debugging cores to design." OFF)
 
@@ -16,9 +18,11 @@ set(HTTP_LISTEN_PORT "80" CACHE STRING "Listen port number for the HTTP Server."
 
 # Infra
 set(HTTP_IP_DIR ${CMAKE_BINARY_DIR}/ips CACHE STRING "IP build directory")
+set(HTTP_KERNEL_DIR ${CMAKE_BINARY_DIR}/kernels CACHE STRING "Kernel build directory")
+set(HTTP_BUILD_DIR "http_kernel_build" CACHE STRING "HTTP building directory")
 
 # Source
-set(HTTP_HW_SOURCE_FILES
+set(HTTP_HW_HLS_SOURCE_FILES
   "hw/hls/headline_parser.cc"
   "hw/hls/http.cc"
   "hw/hls/listen_port.cc"
@@ -28,7 +32,7 @@ set(HTTP_HW_SOURCE_FILES
   "hw/hls/response_processor.cc"
   "hw/hls/status_code_parser.cc")
 
-set(HTTP_HW_SOURCE_FILES_H
+set(HTTP_HW_HLS_SOURCE_FILES_H
   "hw/hls/headline_parser.h"
   "hw/hls/http_lib.h"
   "hw/hls/http.h"
@@ -39,6 +43,10 @@ set(HTTP_HW_SOURCE_FILES_H
   "hw/hls/response_processor.h"
   "hw/hls/status_code_parser.h"
   "hw/hls/tcp_utils.h")
+
+SET(HTTP_HW_RTL_SOURCE_FILES
+  "hw/rtl/http_control_s_axi.sv"
+  "hw/rtl/http.sv")
 
 set(HTTP_SW_SOURCE_FILES
   "sw/host.cc")
@@ -52,23 +60,46 @@ set(FDEV_NAME "u55c" CACHE STRING "FPGA Device Family")
 set(TCP_STACK_EN 1 CACHE BOOL "Enable TCP/IP stack")
 set(UDP_STACK_EN 0 CACHE BOOL "Enable UDP/IP stack")
 set(IPREPO_DIR ${HTTP_IP_DIR} CACHE STRING "IP build directory")
+set(KERNEL_DIR ${HTTP_KERNEL_DIR} CACHE STRING "Kernel build directory")
 
 add_subdirectory(vitis-network-stack)
 
 #
-# fpga-http-server ip
+# http hls ip
 #
 
-add_vitis_ip(http_top #${PROJECT_NAME}
-            FILES ${HTTP_HW_SOURCE_FILES} ${HTTP_HW_SOURCE_FILES_H}
+add_vitis_ip(${HTTP_IP_NAME}
+            FILES ${HTTP_HW_HLS_SOURCE_FILES} ${HTTP_HW_HLS_SOURCE_FILES_H}
             TB_FILES
-              "hw/http.spec.cc"
+              "hw/hls/http.spec.cc"
             PLATFORM_PART ${HTTP_PLATFORM_PART}
             VENDOR "ethz.systems.fpga"
             DISPLAY_NAME "FPGA HTTP Server Stack"
             DESCRIPTION "Middleware between Application HTTP Request-Response and TCP-IP stack."
             VERSION ${PROJECT_VERSION}
             IP_DIR ${HTTP_IP_DIR})
+
+#
+# http rtl kernel
+#
+
+set(HTTP_IP_CMD "ip")
+set(HTTP_KERNEL_CMD "kernel")
+
+set(GENXO_XO_PATH ${HTTP_KERNEL_DIR}/${HTTP_KERNEL_NAME}.xo)
+set(GENXO_KRNL_NAME ${HTTP_KERNEL_NAME})
+set(GENXO_XML_PATH ${CMAKE_CURRENT_SOURCE_DIR}/hw/vitis/kernel.xml)
+set(GENXO_TCL_PATH ./hw/vitis/package.tcl)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/vitis-network-stack/scripts/gen_xo.tcl.in ./hw/vitis/gen_xo.tcl)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/hw/vitis/package.tcl.in ./hw/vitis/package.tcl)
+
+add_custom_target(${HTTP_KERNEL_CMD}.${HTTP_KERNEL_NAME}
+  COMMENT "Exporting kernel ${HTTP_KERNEL_NAME} to .xo"
+  COMMAND ${Vitis_VIVADO} -mode batch -source ./hw/vitis/gen_xo.tcl
+  DEPENDS ${HTTP_HW_RTL_SOURCE_FILES} ${HTTP_IP_CMD}.${HTTP_IP_NAME})
+
+add_dependencies(${HTTP_KERNEL_CMD} ${HTTP_KERNEL_CMD}.${HTTP_KERNEL_NAME})
 
 #
 # static-pages application
@@ -96,9 +127,9 @@ add_subdirectory(examples/static_pages)
 #                  #PORT_MAPPING "ddr0:DDR[0]" "ddr1:DDR[1]")
 
 # add_vitis_kernel(http
-#                  FILES ${HTTP_HW_SOURCE_FILES}
+#                  FILES ${HTTP_HW_HLS_SOURCE_FILES}
 #                  KERNEL "http_krnl"
-#                  DEPENDS ${HTTP_HW_SOURCE_FILES_H}
+#                  DEPENDS ${HTTP_HW_HLS_SOURCE_FILES_H}
 #                  HLS_FLAGS "-DHTTP_LISTEN_PORT=" ${HTTP_LISTEN_PORT})
 #                  #INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include hlslib/include
 #                  #PORT_MAPPING "ddr0:DDR[0]" "ddr1:DDR[1]")

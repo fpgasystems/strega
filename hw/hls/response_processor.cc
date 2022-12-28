@@ -49,7 +49,7 @@ void state_machine(
       tcp_rxtx_request_pkt meta;
       meta.sessionID = raw.meta.sessionID;
       meta.length = raw.body_size + raw.headers_size; // TOOD + status code + end of lines
-      tcp_tx_meta.write(meta.serialise());
+      tcp_tx_meta.write(meta);
 
       state = fsm_state::META;
       break;
