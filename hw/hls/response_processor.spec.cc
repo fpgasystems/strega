@@ -15,9 +15,9 @@ int main (int argc, char* argv[]) {
   // top-level streams
   //
 
-  hls::stream<pkt32> tcp_tx_meta("tcp_tx_meta");
+  hls::stream<pkt32> tcp_tx_req("tcp_tx_req");
+  hls::stream<pkt64> tcp_tx_rsp("tcp_tx_rsp");
   hls::stream<pkt512> tcp_tx_data("tcp_tx_data");
-  hls::stream<pkt64> tcp_tx_status("tcp_tx_status");
   hls::stream<http_response_spt> http_response("http_response");
   hls::stream<pkt512> http_response_headers("http_response_headers");
   hls::stream<pkt512> http_response_body("http_response_body");
@@ -96,19 +96,19 @@ int main (int argc, char* argv[]) {
       }
     }
 
-    tcp_tx_status_pkt tx_status;
+    tcp_tx_rsp_pkt tx_status;
     tx_status.sessionID = sessionID;
     tx_status.length = body.size() + headers.size();
     tx_status.remaining_space = -1;
     tx_status.error = 0;
-    tcp_tx_status.write(tx_status.serialise());
+    tcp_tx_rsp.write(tx_status.serialise());
 
     bool last = false;
     do {
       response_processor(
-        tcp_tx_meta,
+        tcp_tx_req,
+        tcp_tx_rsp,
         tcp_tx_data,
-        tcp_tx_status,
         http_response,
         http_response_headers,
         http_response_body
@@ -120,14 +120,14 @@ int main (int argc, char* argv[]) {
       }
     } while (!last);
 
-    tcp_rxtx_request_pkt tx_meta = tcp_tx_meta.read();
+    tcp_xx_req_pkt tx_meta = tcp_tx_req.read();
     if (tx_meta.sessionID != sessionID) {
       this_test = false;
-      std::cerr << "ERROR: [" << i << "][tcp_tx_meta.sessionID]" << std::endl;
+      std::cerr << "ERROR: [" << i << "][tcp_tx_req.sessionID]" << std::endl;
     }
     if (tx_meta.length != (body.size() + headers.size())) {
       this_test = false;
-      std::cerr << "ERROR: [" << i << "][tcp_tx_meta.length]" << std::endl;
+      std::cerr << "ERROR: [" << i << "][tcp_tx_req.length]" << std::endl;
     }
 
     if (this_test) {

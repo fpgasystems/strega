@@ -21,9 +21,30 @@ update_ip_catalog
 create_ip -name ${HTTP_IP_NAME} -vendor ethz.systems.fpga -library hls -version ${PROJECT_VERSION} -module_name http_ip
 update_compile_order -fileset sources_1
 
+#
+# AXI REGISTER SLICES
+#
 
+create_ip -name axis_register_slice -vendor xilinx.com -library ip -version 1.1 -module_name axis_register_slice_8
+set_property -dict [list CONFIG.TDATA_NUM_BYTES {1}] [get_ips axis_register_slice_8]
 
+create_ip -name axis_register_slice -vendor xilinx.com -library ip -version 1.1 -module_name axis_register_slice_16
+set_property -dict [list CONFIG.TDATA_NUM_BYTES {2}] [get_ips axis_register_slice_16]
 
+create_ip -name axis_register_slice -vendor xilinx.com -library ip -version 1.1 -module_name axis_register_slice_32
+set_property -dict [list CONFIG.TDATA_NUM_BYTES {4}] [get_ips axis_register_slice_32]
+
+create_ip -name axis_register_slice -vendor xilinx.com -library ip -version 1.1 -module_name axis_register_slice_64
+set_property -dict [list CONFIG.TDATA_NUM_BYTES {8}] [get_ips axis_register_slice_64]
+
+create_ip -name axis_register_slice -vendor xilinx.com -library ip -version 1.1 -module_name axis_register_slice_128
+set_property -dict [list CONFIG.TDATA_NUM_BYTES {16}] [get_ips axis_register_slice_128]
+
+create_ip -name axis_register_slice -vendor xilinx.com -library ip -version 1.1 -module_name axis_register_slice_256
+set_property -dict [list CONFIG.TDATA_NUM_BYTES {32}] [get_ips axis_register_slice_256]
+
+create_ip -name axis_register_slice -vendor xilinx.com -library ip -version 1.1 -module_name axis_register_slice_512
+set_property -dict [list CONFIG.TDATA_NUM_BYTES {64} CONFIG.HAS_TKEEP {1} CONFIG.HAS_TLAST {1}] [get_ips axis_register_slice_512]
 
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1
@@ -83,15 +104,15 @@ ipx::associate_bus_interfaces -busif http_response_body -clock ap_clk [ipx::curr
 # TCP-IP
 #
 
-ipx::add_bus_interface tcp_listen_port [ipx::current_core]
-set_property interface_mode master [ipx::get_bus_interfaces tcp_listen_port -of_objects [ipx::current_core]]
-set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_listen_port -of_objects [ipx::current_core]]
-ipx::associate_bus_interfaces -busif tcp_listen_port -clock ap_clk [ipx::current_core]
+ipx::add_bus_interface tcp_listen_req [ipx::current_core]
+set_property interface_mode master [ipx::get_bus_interfaces tcp_listen_req -of_objects [ipx::current_core]]
+set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_listen_req -of_objects [ipx::current_core]]
+ipx::associate_bus_interfaces -busif tcp_listen_req -clock ap_clk [ipx::current_core]
 
-ipx::add_bus_interface tcp_port_status [ipx::current_core]
-set_property interface_mode slave [ipx::get_bus_interfaces tcp_port_status -of_objects [ipx::current_core]]
-set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_port_status -of_objects [ipx::current_core]]
-ipx::associate_bus_interfaces -busif tcp_port_status -clock ap_clk [ipx::current_core]
+ipx::add_bus_interface tcp_listen_rsp [ipx::current_core]
+set_property interface_mode slave [ipx::get_bus_interfaces tcp_listen_rsp -of_objects [ipx::current_core]]
+set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_listen_rsp -of_objects [ipx::current_core]]
+ipx::associate_bus_interfaces -busif tcp_listen_rsp -clock ap_clk [ipx::current_core]
 
 ipx::add_bus_interface tcp_open_conn [ipx::current_core]
 set_property interface_mode master [ipx::get_bus_interfaces tcp_open_conn -of_objects [ipx::current_core]]
@@ -113,35 +134,35 @@ set_property interface_mode slave [ipx::get_bus_interfaces tcp_notification -of_
 set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_notification -of_objects [ipx::current_core]]
 ipx::associate_bus_interfaces -busif tcp_notification -clock ap_clk [ipx::current_core]
 
-ipx::add_bus_interface tcp_read_pkg [ipx::current_core]
-set_property interface_mode master [ipx::get_bus_interfaces tcp_read_pkg -of_objects [ipx::current_core]]
-set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_read_pkg -of_objects [ipx::current_core]]
-ipx::associate_bus_interfaces -busif tcp_read_pkg -clock ap_clk [ipx::current_core]
+ipx::add_bus_interface tcp_rx_req [ipx::current_core]
+set_property interface_mode master [ipx::get_bus_interfaces tcp_rx_req -of_objects [ipx::current_core]]
+set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_rx_req -of_objects [ipx::current_core]]
+ipx::associate_bus_interfaces -busif tcp_rx_req -clock ap_clk [ipx::current_core]
 
-ipx::add_bus_interface tcp_rx_meta [ipx::current_core]
-set_property interface_mode slave [ipx::get_bus_interfaces tcp_rx_meta -of_objects [ipx::current_core]]
-set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_rx_meta -of_objects [ipx::current_core]]
-ipx::associate_bus_interfaces -busif tcp_rx_meta -clock ap_clk [ipx::current_core]
+ipx::add_bus_interface tcp_rx_rsp [ipx::current_core]
+set_property interface_mode slave [ipx::get_bus_interfaces tcp_rx_rsp -of_objects [ipx::current_core]]
+set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_rx_rsp -of_objects [ipx::current_core]]
+ipx::associate_bus_interfaces -busif tcp_rx_rsp -clock ap_clk [ipx::current_core]
 
 ipx::add_bus_interface tcp_rx_data [ipx::current_core]
 set_property interface_mode slave [ipx::get_bus_interfaces tcp_rx_data -of_objects [ipx::current_core]]
 set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_rx_data -of_objects [ipx::current_core]]
 ipx::associate_bus_interfaces -busif tcp_rx_data -clock ap_clk [ipx::current_core]
 
-ipx::add_bus_interface tcp_tx_meta [ipx::current_core]
-set_property interface_mode master [ipx::get_bus_interfaces tcp_tx_meta -of_objects [ipx::current_core]]
-set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_tx_meta -of_objects [ipx::current_core]]
-ipx::associate_bus_interfaces -busif tcp_tx_meta -clock ap_clk [ipx::current_core]
+ipx::add_bus_interface tcp_tx_req [ipx::current_core]
+set_property interface_mode master [ipx::get_bus_interfaces tcp_tx_req -of_objects [ipx::current_core]]
+set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_tx_req -of_objects [ipx::current_core]]
+ipx::associate_bus_interfaces -busif tcp_tx_req -clock ap_clk [ipx::current_core]
+
+ipx::add_bus_interface tcp_tx_rsp [ipx::current_core]
+set_property interface_mode slave [ipx::get_bus_interfaces tcp_tx_rsp -of_objects [ipx::current_core]]
+set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_tx_rsp -of_objects [ipx::current_core]]
+ipx::associate_bus_interfaces -busif tcp_tx_rsp -clock ap_clk [ipx::current_core]
 
 ipx::add_bus_interface tcp_tx_data [ipx::current_core]
 set_property interface_mode master [ipx::get_bus_interfaces tcp_tx_data -of_objects [ipx::current_core]]
 set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_tx_data -of_objects [ipx::current_core]]
 ipx::associate_bus_interfaces -busif tcp_tx_data -clock ap_clk [ipx::current_core]
-
-ipx::add_bus_interface tcp_tx_status [ipx::current_core]
-set_property interface_mode slave [ipx::get_bus_interfaces tcp_tx_status -of_objects [ipx::current_core]]
-set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces tcp_tx_status -of_objects [ipx::current_core]]
-ipx::associate_bus_interfaces -busif tcp_tx_status -clock ap_clk [ipx::current_core]
 
 #
 # UDP
@@ -166,6 +187,8 @@ ipx::add_bus_interface udp_tx_meta [ipx::current_core]
 set_property interface_mode master [ipx::get_bus_interfaces udp_tx_meta -of_objects [ipx::current_core]]
 set_property abstraction_type_vlnv xilinx.com:interface:axis_rtl:1.0 [ipx::get_bus_interfaces udp_tx_meta -of_objects [ipx::current_core]]
 ipx::associate_bus_interfaces -busif udp_tx_meta -clock ap_clk [ipx::current_core]
+
+#
 
 set_property xpm_libraries {XPM_CDC XPM_MEMORY XPM_FIFO} [ipx::current_core]
 set_property supported_families { } [ipx::current_core]

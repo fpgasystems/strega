@@ -10,9 +10,9 @@ namespace http {
 
 void response_processor (
   // TCP/IP
-  hls::stream<tcp_rxtx_request_pkt>& tcp_tx_meta,
+  hls::stream<tcp_xx_req_pkt>& tcp_tx_req,
+  hls::stream<tcp_tx_rsp_pkt>& tcp_tx_rsp,
   hls::stream<pkt512>& tcp_tx_data,
-  hls::stream<tcp_tx_status_pkt>& tcp_tx_status,
   // INTERNAL
   // APPLICATION
   hls::stream<http_response_spt>& http_response,

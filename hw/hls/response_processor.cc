@@ -18,9 +18,9 @@ enum class fsm_state {
 };
 
 void state_machine(
-  hls::stream<tcp_rxtx_request_pkt>& tcp_tx_meta,
+  hls::stream<tcp_xx_req_pkt>& tcp_tx_req,
+  hls::stream<tcp_tx_rsp_pkt>& tcp_tx_rsp,
   hls::stream<pkt512>& tcp_tx_data,
-  hls::stream<tcp_tx_status_pkt>& tcp_tx_status,
   // INTERNAL
   hls::stream<HttpStatus>& resp_status_code,
   hls::stream<http_status_code_ospt>& resp_status_line,
@@ -46,10 +46,10 @@ void state_machine(
       http_response_spt raw = http_response.read();
       resp_status_code.write(raw.status_code);
 
-      tcp_rxtx_request_pkt meta;
+      tcp_xx_req_pkt meta;
       meta.sessionID = raw.meta.sessionID;
       meta.length = raw.body_size + raw.headers_size; // TOOD + status code + end of lines
-      tcp_tx_meta.write(meta);
+      tcp_tx_req.write(meta);
 
       state = fsm_state::META;
       break;
@@ -57,7 +57,7 @@ void state_machine(
 
     case fsm_state::META:
     {
-      tcp_tx_status_pkt tx_status = tcp_tx_status.read();
+      tcp_tx_rsp_pkt tx_status = tcp_tx_rsp.read();
       state = fsm_state::DATA_HTTP_STATUS;
       // TODO handle error
       // switch (tx_status.error) {
@@ -153,9 +153,9 @@ void state_machine(
 
 void response_processor (
   // TCP/IP
-  hls::stream<tcp_rxtx_request_pkt>& tcp_tx_meta,
+  hls::stream<tcp_xx_req_pkt>& tcp_tx_req,
+  hls::stream<tcp_tx_rsp_pkt>& tcp_tx_rsp,
   hls::stream<pkt512>& tcp_tx_data,
-  hls::stream<tcp_tx_status_pkt>& tcp_tx_status,
   // INTERNAL
   // APPLICATION
   hls::stream<http_response_spt>& http_response,
@@ -168,9 +168,9 @@ void response_processor (
   static hls::stream<http_status_code_ospt> resp_status_line("resp_status_line");
 
   state_machine(
-    tcp_tx_meta,
+    tcp_tx_req,
+    tcp_tx_rsp,
     tcp_tx_data,
-    tcp_tx_status,
     resp_status_code,
     resp_status_line,
     http_response,

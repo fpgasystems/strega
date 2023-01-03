@@ -102,8 +102,7 @@ int main (int argc, char **argv) {
   cl_int err;
   cl::CommandQueue q;
   cl::Context context;
-  cl::Kernel user_kernel;
-  cl::Kernel network_kernel;
+  cl::Program program;
 
   auto devices = xcl::get_xil_devices();
   auto fileBuf = xcl::read_binary_file(binaryFile);
@@ -115,13 +114,11 @@ int main (int argc, char **argv) {
     OCL_CHECK(err, q = cl::CommandQueue(
           context, {device}, CL_QUEUE_PROFILING_ENABLE, &err));
     std::cout << "Trying to program device[" << i << "]: " << device.getInfo<CL_DEVICE_NAME>() << std::endl;
-    cl::Program program(context, {device}, bins, NULL, &err);
+    program = cl::Program(context, {device}, bins, NULL, &err);
     if (err != CL_SUCCESS) {
       std::cout << "Failed to program device[" << i << "] with xclbin file!" << std::endl;
     } else {
       std::cout << "Device[" << i << "]: program successful!" << std::endl;
-      OCL_CHECK(err, network_kernel = cl::Kernel(program, "network_krnl", &err));
-      OCL_CHECK(err, user_kernel = cl::Kernel(program, "static_pages", &err));
       valid_device = true;
       break;
     }
@@ -134,6 +131,9 @@ int main (int argc, char **argv) {
   ///////////////////////////////////////////////////////////////////////////////////////
   // NETWORK KERNEL
   ///////////////////////////////////////////////////////////////////////////////////////
+
+  cl::Kernel network_kernel;
+  OCL_CHECK(err, network_kernel = cl::Kernel(program, "network_krnl", &err));
 
   auto network_mem_size_bytes = sizeof(int) * NETWORK_DATA_SIZE;
   std::vector<int, aligned_allocator<int>> network_ptr0(NETWORK_DATA_SIZE);
@@ -163,8 +163,20 @@ int main (int argc, char **argv) {
   OCL_CHECK(err, err = q.finish());
 
   ///////////////////////////////////////////////////////////////////////////////////////
+  // HTTP KERNEL
+  ///////////////////////////////////////////////////////////////////////////////////////
+
+  cl::Kernel http_kernel;
+  OCL_CHECK(err, http_kernel = cl::Kernel(program, "http", &err));
+
+  //OCL_CHECK(err, err = q.enqueueTask(http_kernel)); TODO MUST BE ASYNC
+
+  ///////////////////////////////////////////////////////////////////////////////////////
   // USER KERNEL
   ///////////////////////////////////////////////////////////////////////////////////////
+
+  cl::Kernel user_kernel;
+  OCL_CHECK(err, user_kernel = cl::Kernel(program, "static_pages", &err));
 
   uint32_t arg = 6;
   // ap_uint<512>* mem_response

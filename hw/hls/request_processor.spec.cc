@@ -15,8 +15,8 @@ int main (int argc, char* argv[]) {
   //
 
   hls::stream<pkt128> tcp_notification("tcp_notification");
-  hls::stream<pkt32> tcp_read_request("tcp_read_request");
-  hls::stream<pkt16> tcp_rx_meta("tcp_rx_meta");
+  hls::stream<pkt32> tcp_rx_req("tcp_rx_req");
+  hls::stream<pkt16> tcp_rx_rsp("tcp_rx_rsp");
   hls::stream<pkt512> tcp_rx_data("tcp_rx_data");
   hls::stream<http_request_spt> http_request("http_request");
   hls::stream<pkt512> http_request_headers("http_request_headers");
@@ -80,7 +80,7 @@ int main (int argc, char* argv[]) {
     tcp_notification.write(notif.serialise());
 
     pkt16 rx_meta;
-    tcp_rx_meta.write(rx_meta);
+    tcp_rx_rsp.write(rx_meta);
 
     pkt512 rx_data;
     for (int j=0; j<input[i].size(); j++) {
@@ -107,8 +107,8 @@ int main (int argc, char* argv[]) {
     do {
       request_processor(
         tcp_notification,
-        tcp_read_request,
-        tcp_rx_meta,
+        tcp_rx_req,
+        tcp_rx_rsp,
         tcp_rx_data,
         http_request,
         http_request_headers,
@@ -124,7 +124,7 @@ int main (int argc, char* argv[]) {
     } while (!last);
     // std::cout << std::endl;
 
-    tcp_rxtx_request_pkt read_request = tcp_read_request.read();
+    tcp_xx_req_pkt read_request = tcp_rx_req.read();
     if (read_request.sessionID != notif.sessionID) {
       this_test = false;
       std::cerr << "ERROR: [" << i << "][read_request.sessionID]" << std::endl;

@@ -11,8 +11,8 @@ namespace http {
 void request_processor (
   // TCP/IP
   hls::stream<tcp_notification_pkt>& tcp_notification,
-  hls::stream<tcp_rxtx_request_pkt>& tcp_read_request,
-  hls::stream<ap_uint<16>>& tcp_rx_meta,
+  hls::stream<tcp_xx_req_pkt>& tcp_rx_req,
+  hls::stream<ap_uint<16>>& tcp_rx_rsp,
   hls::stream<pkt512>& tcp_rx_data,
   // INTERNAL
   // APPLICATION

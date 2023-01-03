@@ -11,18 +11,18 @@ module http #(
   parameter integer C_UDP_TX_TDATA_WIDTH                      = 512                   ,
   parameter integer C_UDP_RX_META_TDATA_WIDTH                 = 256                   ,
   parameter integer C_UDP_TX_META_TDATA_WIDTH                 = 256                   ,
-  parameter integer C_TCP_LISTEN_PORT_TDATA_WIDTH             = 16                    ,
-  parameter integer C_TCP_PORT_STATUS_TDATA_WIDTH             = 8                     ,
+  parameter integer C_TCP_LISTEN_REQ_TDATA_WIDTH              = 16                    ,
+  parameter integer C_TCP_LISTEN_RSP_TDATA_WIDTH              = 8                     ,
   parameter integer C_TCP_OPEN_CONN_TDATA_WIDTH               = 64                    ,
   parameter integer C_TCP_OPEN_STATUS_TDATA_WIDTH             = 128                   ,
   parameter integer C_TCP_CLOSE_CONN_TDATA_WIDTH              = 16                    ,
   parameter integer C_TCP_NOTIFICATION_TDATA_WIDTH            = 128                   ,
-  parameter integer C_TCP_READ_PKG_TDATA_WIDTH                = 32                    ,
-  parameter integer C_TCP_RX_META_TDATA_WIDTH                 = 16                    ,
+  parameter integer C_TCP_RX_REQ_TDATA_WIDTH                  = 32                    ,
+  parameter integer C_TCP_RX_RSP_TDATA_WIDTH                  = 16                    ,
   parameter integer C_TCP_RX_DATA_TDATA_WIDTH                 = 512                   ,
-  parameter integer C_TCP_TX_META_TDATA_WIDTH                 = 32                    ,
+  parameter integer C_TCP_TX_REQ_TDATA_WIDTH                  = 32                    ,
   parameter integer C_TCP_TX_DATA_TDATA_WIDTH                 = 512                   ,
-  parameter integer C_TCP_TX_STATUS_TDATA_WIDTH               = 64                    ,
+  parameter integer C_TCP_TX_RSP_TDATA_WIDTH                  = 64                    ,
   parameter integer C_HTTP_REQUEST_TDATA_WIDTH                = 256                   ,
   parameter integer C_HTTP_REQUEST_HEADERS_TDATA_WIDTH        = 512                   ,
   parameter integer C_HTTP_REQUEST_BODY_TDATA_WIDTH           = 512                   ,
@@ -62,16 +62,16 @@ module http #(
   output wire [C_UDP_TX_META_TDATA_WIDTH/8-1:0]           udp_tx_meta_tkeep           ,
   output wire                                             udp_tx_meta_tlast           ,
   
-  output wire                                             tcp_listen_port_tvalid      ,
-  input  wire                                             tcp_listen_port_tready      ,
-  output wire [C_TCP_LISTEN_PORT_TDATA_WIDTH-1:0]         tcp_listen_port_tdata       ,
-  output wire [C_TCP_LISTEN_PORT_TDATA_WIDTH/8-1:0]       tcp_listen_port_tkeep       ,
-  output wire                                             tcp_listen_port_tlast       ,
+  output wire                                             tcp_listen_req_tvalid       ,
+  input  wire                                             tcp_listen_req_tready       ,
+  output wire [C_TCP_LISTEN_REQ_TDATA_WIDTH-1:0]          tcp_listen_req_tdata        ,
+  output wire [C_TCP_LISTEN_REQ_TDATA_WIDTH/8-1:0]        tcp_listen_req_tkeep        ,
+  output wire                                             tcp_listen_req_tlast        ,
   
-  input  wire                                             tcp_port_status_tvalid      ,
-  output wire                                             tcp_port_status_tready      ,
-  input  wire [C_TCP_PORT_STATUS_TDATA_WIDTH-1:0]         tcp_port_status_tdata       ,
-  input  wire                                             tcp_port_status_tlast       ,
+  input  wire                                             tcp_listen_rsp_tvalid       ,
+  output wire                                             tcp_listen_rsp_tready       ,
+  input  wire [C_TCP_LISTEN_RSP_TDATA_WIDTH-1:0]          tcp_listen_rsp_tdata        ,
+  input  wire                                             tcp_listen_rsp_tlast        ,
   
   output wire                                             tcp_open_conn_tvalid        ,
   input  wire                                             tcp_open_conn_tready        ,
@@ -97,17 +97,17 @@ module http #(
   input  wire [C_TCP_NOTIFICATION_TDATA_WIDTH/8-1:0]      tcp_notification_tkeep      ,
   input  wire                                             tcp_notification_tlast      ,
   
-  output wire                                             tcp_read_pkg_tvalid         ,
-  input  wire                                             tcp_read_pkg_tready         ,
-  output wire [C_TCP_READ_PKG_TDATA_WIDTH-1:0]            tcp_read_pkg_tdata          ,
-  output wire [C_TCP_READ_PKG_TDATA_WIDTH/8-1:0]          tcp_read_pkg_tkeep          ,
-  output wire                                             tcp_read_pkg_tlast          ,
+  output wire                                             tcp_rx_req_tvalid           ,
+  input  wire                                             tcp_rx_req_tready           ,
+  output wire [C_TCP_RX_REQ_TDATA_WIDTH-1:0]              tcp_rx_req_tdata            ,
+  output wire [C_TCP_RX_REQ_TDATA_WIDTH/8-1:0]            tcp_rx_req_tkeep            ,
+  output wire                                             tcp_rx_req_tlast            ,
   
-  input  wire                                             tcp_rx_meta_tvalid          ,
-  output wire                                             tcp_rx_meta_tready          ,
-  input  wire [C_TCP_RX_META_TDATA_WIDTH-1:0]             tcp_rx_meta_tdata           ,
-  input  wire [C_TCP_RX_META_TDATA_WIDTH/8-1:0]           tcp_rx_meta_tkeep           ,
-  input  wire                                             tcp_rx_meta_tlast           ,
+  input  wire                                             tcp_rx_rsp_tvalid           ,
+  output wire                                             tcp_rx_rsp_tready           ,
+  input  wire [C_TCP_RX_RSP_TDATA_WIDTH-1:0]              tcp_rx_rsp_tdata            ,
+  input  wire [C_TCP_RX_RSP_TDATA_WIDTH/8-1:0]            tcp_rx_rsp_tkeep            ,
+  input  wire                                             tcp_rx_rsp_tlast            ,
   
   input  wire                                             tcp_rx_data_tvalid          ,
   output wire                                             tcp_rx_data_tready          ,
@@ -115,23 +115,23 @@ module http #(
   input  wire [C_TCP_RX_DATA_TDATA_WIDTH/8-1:0]           tcp_rx_data_tkeep           ,
   input  wire                                             tcp_rx_data_tlast           ,
   
-  output wire                                             tcp_tx_meta_tvalid          ,
-  input  wire                                             tcp_tx_meta_tready          ,
-  output wire [C_TCP_TX_META_TDATA_WIDTH-1:0]             tcp_tx_meta_tdata           ,
-  output wire [C_TCP_TX_META_TDATA_WIDTH/8-1:0]           tcp_tx_meta_tkeep           ,
-  output wire                                             tcp_tx_meta_tlast           ,
+  output wire                                             tcp_tx_req_tvalid           ,
+  input  wire                                             tcp_tx_req_tready           ,
+  output wire [C_TCP_TX_REQ_TDATA_WIDTH-1:0]              tcp_tx_req_tdata            ,
+  output wire [C_TCP_TX_REQ_TDATA_WIDTH/8-1:0]            tcp_tx_req_tkeep            ,
+  output wire                                             tcp_tx_req_tlast            ,
+  
+  input  wire                                             tcp_tx_rsp_tvalid           ,
+  output wire                                             tcp_tx_rsp_tready           ,
+  input  wire [C_TCP_TX_RSP_TDATA_WIDTH-1:0]              tcp_tx_rsp_tdata            ,
+  input  wire [C_TCP_TX_RSP_TDATA_WIDTH/8-1:0]            tcp_tx_rsp_tkeep            ,
+  input  wire                                             tcp_tx_rsp_tlast            ,
   
   output wire                                             tcp_tx_data_tvalid          ,
   input  wire                                             tcp_tx_data_tready          ,
   output wire [C_TCP_TX_DATA_TDATA_WIDTH-1:0]             tcp_tx_data_tdata           ,
   output wire [C_TCP_TX_DATA_TDATA_WIDTH/8-1:0]           tcp_tx_data_tkeep           ,
   output wire                                             tcp_tx_data_tlast           ,
-  
-  input  wire                                             tcp_tx_status_tvalid        ,
-  output wire                                             tcp_tx_status_tready        ,
-  input  wire [C_TCP_TX_STATUS_TDATA_WIDTH-1:0]           tcp_tx_status_tdata         ,
-  input  wire [C_TCP_TX_STATUS_TDATA_WIDTH/8-1:0]         tcp_tx_status_tkeep         ,
-  input  wire                                             tcp_tx_status_tlast         ,
 
   //
   // APPLICATION
@@ -203,7 +203,6 @@ wire ap_start;
 wire ap_idle;
 wire ap_done;
 wire ap_ready;
-wire ap_continue;
 
 always @(posedge ap_clk) begin
   areset <= ~ap_rst_n;
@@ -242,54 +241,31 @@ inst_control_s_axi (
   .ap_start    ( ap_start              ),
   .ap_done     ( ap_done               ),
   .ap_ready    ( ap_ready              ),
-  .ap_idle     ( ap_idle               ),
-  .ap_continue ( ap_continue           )
+  .ap_idle     ( ap_idle               )
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 // HTTP
 ///////////////////////////////////////////////////////////////////////////////
 
-wire tcp_rx_data_V_data_V_TREADY;
-wire tcp_rx_data_V_keep_V_TREADY;
-wire tcp_rx_data_V_strb_V_TREADY;
-wire tcp_rx_data_V_last_V_TREADY;
-assign tcp_rx_data_tready = tcp_rx_data_V_data_V_TREADY & tcp_rx_data_V_keep_V_TREADY & tcp_rx_data_V_strb_V_TREADY & tcp_rx_data_V_last_V_TREADY;
-
-wire tcp_tx_data_V_data_V_TVALID;
-wire tcp_tx_data_V_keep_V_TVALID;
-wire tcp_tx_data_V_strb_V_TVALID;
-wire tcp_tx_data_V_last_V_TVALID;
-assign tcp_tx_data_tvalid = tcp_tx_data_V_data_V_TVALID & tcp_tx_data_V_keep_V_TVALID & tcp_tx_data_V_strb_V_TVALID & tcp_tx_data_V_last_V_TVALID;
-
-wire http_request_headers_V_data_V_TVALID;
-wire http_request_headers_V_keep_V_TVALID;
-wire http_request_headers_V_strb_V_TVALID;
-wire http_request_headers_V_last_V_TVALID;
-assign http_request_headers_tvalid = http_request_headers_V_data_V_TVALID & http_request_headers_V_keep_V_TVALID & http_request_headers_V_strb_V_TVALID & http_request_headers_V_last_V_TVALID;
-
-assign http_request_tkeep = {C_HTTP_REQUEST_TDATA_WIDTH/8{1'b1}};
-assign http_request_tlast = 1'b1;
-
-wire http_request_body_V_data_V_TVALID;
-wire http_request_body_V_keep_V_TVALID;
-wire http_request_body_V_strb_V_TVALID;
-wire http_request_body_V_last_V_TVALID;
-assign http_request_body_tvalid = http_request_body_V_data_V_TVALID & http_request_body_V_keep_V_TVALID & http_request_body_V_strb_V_TVALID & http_request_body_V_last_V_TVALID;
-
-wire http_response_headers_V_data_V_TREADY;
-wire http_response_headers_V_keep_V_TREADY;
-wire http_response_headers_V_strb_V_TREADY;
-wire http_response_headers_V_last_V_TREADY;
-assign http_response_headers_tready = http_response_headers_V_data_V_TREADY & http_response_headers_V_keep_V_TREADY & http_response_headers_V_strb_V_TREADY & http_response_headers_V_last_V_TREADY;
-
-wire http_response_body_V_data_V_TREADY;
-wire http_response_body_V_keep_V_TREADY;
-wire http_response_body_V_strb_V_TREADY;
-wire http_response_body_V_last_V_TREADY;
-assign http_response_body_tready = http_response_body_V_data_V_TREADY & http_response_body_V_keep_V_TREADY & http_response_body_V_strb_V_TREADY & http_response_body_V_last_V_TREADY;
-
-http_ip http_inst (
+http_core #(
+  .C_TCP_LISTEN_REQ_TDATA_WIDTH ( C_TCP_LISTEN_REQ_TDATA_WIDTH ),
+  .C_TCP_LISTEN_RSP_TDATA_WIDTH ( C_TCP_LISTEN_RSP_TDATA_WIDTH ),
+  .C_TCP_NOTIFICATION_TDATA_WIDTH ( C_TCP_NOTIFICATION_TDATA_WIDTH ),
+  .C_TCP_RX_REQ_TDATA_WIDTH ( C_TCP_RX_REQ_TDATA_WIDTH ),
+  .C_TCP_RX_RSP_TDATA_WIDTH ( C_TCP_RX_RSP_TDATA_WIDTH ),
+  .C_TCP_RX_DATA_TDATA_WIDTH ( C_TCP_RX_DATA_TDATA_WIDTH ),
+  .C_TCP_TX_REQ_TDATA_WIDTH ( C_TCP_TX_REQ_TDATA_WIDTH ),
+  .C_TCP_TX_RSP_TDATA_WIDTH ( C_TCP_TX_RSP_TDATA_WIDTH ),
+  .C_TCP_TX_DATA_TDATA_WIDTH ( C_TCP_TX_DATA_TDATA_WIDTH ),
+  .C_HTTP_REQUEST_TDATA_WIDTH ( C_HTTP_REQUEST_TDATA_WIDTH ),
+  .C_HTTP_REQUEST_HEADERS_TDATA_WIDTH ( C_HTTP_REQUEST_HEADERS_TDATA_WIDTH ),
+  .C_HTTP_REQUEST_BODY_TDATA_WIDTH ( C_HTTP_REQUEST_BODY_TDATA_WIDTH ),
+  .C_HTTP_RESPONSE_TDATA_WIDTH ( C_HTTP_RESPONSE_TDATA_WIDTH ),
+  .C_HTTP_RESPONSE_HEADERS_TDATA_WIDTH ( C_HTTP_RESPONSE_HEADERS_TDATA_WIDTH ),
+  .C_HTTP_RESPONSE_BODY_TDATA_WIDTH ( C_HTTP_RESPONSE_BODY_TDATA_WIDTH )
+)
+http_core_inst (
   .ap_clk(ap_clk),
   .ap_rst_n(ap_rst_n),
 
@@ -297,131 +273,92 @@ http_ip http_inst (
   // TCP-IP
   //
 
-  .tcp_listen_req_TDATA(tcp_listen_port_tdata),
-  .tcp_listen_req_TVALID(tcp_listen_port_tvalid),
-  .tcp_listen_req_TREADY(tcp_listen_port_tready),
+  .tcp_listen_req_tdata(tcp_listen_req_tdata),
+  .tcp_listen_req_tvalid(tcp_listen_req_tvalid),
+  .tcp_listen_req_tready(tcp_listen_req_tready),
 
-  .tcp_listen_rsp_TDATA(tcp_port_status_tdata),
-  .tcp_listen_rsp_TVALID(tcp_port_status_tvalid),
-  .tcp_listen_rsp_TREADY(tcp_port_status_tready),
+  .tcp_listen_rsp_tdata(tcp_listen_rsp_tdata),
+  .tcp_listen_rsp_tvalid(tcp_listen_rsp_tvalid),
+  .tcp_listen_rsp_tready(tcp_listen_rsp_tready),
 
-  .tcp_notification_TDATA(tcp_notification_tdata),
-  .tcp_notification_TVALID(tcp_notification_tvalid),
-  .tcp_notification_TREADY(tcp_notification_tready),
+  .tcp_notification_tdata(tcp_notification_tdata),
+  .tcp_notification_tvalid(tcp_notification_tvalid),
+  .tcp_notification_tready(tcp_notification_tready),
 
-  .tcp_read_request_TDATA(tcp_read_pkg_tdata),
-  .tcp_read_request_TVALID(tcp_read_pkg_tvalid),
-  .tcp_read_request_TREADY(tcp_read_pkg_tready),
+  .tcp_rx_req_tdata(tcp_rx_req_tdata),
+  .tcp_rx_req_tvalid(tcp_rx_req_tvalid),
+  .tcp_rx_req_tready(tcp_rx_req_tready),
 
-  .tcp_rx_meta_TDATA(tcp_rx_meta_tdata),
-  .tcp_rx_meta_TVALID(tcp_rx_meta_tvalid),
-  .tcp_rx_meta_TREADY(tcp_rx_meta_tready),
+  .tcp_rx_rsp_tdata(tcp_rx_rsp_tdata),
+  .tcp_rx_rsp_tvalid(tcp_rx_rsp_tvalid),
+  .tcp_rx_rsp_tready(tcp_rx_rsp_tready),
 
-  .tcp_tx_meta_TDATA(tcp_tx_meta_tdata),
-  .tcp_tx_meta_TVALID(tcp_tx_meta_tvalid),
-  .tcp_tx_meta_TREADY(tcp_tx_meta_tready),
+  .tcp_rx_data_tvalid(tcp_rx_data_tvalid),
+  .tcp_rx_data_tready(tcp_rx_data_tready),
+  .tcp_rx_data_tdata(tcp_rx_data_tdata),
+  .tcp_rx_data_tkeep(tcp_rx_data_tkeep),
+  .tcp_rx_data_tlast(tcp_rx_data_tlast),
 
-  .tcp_tx_status_TDATA(tcp_tx_status_tdata),
-  .tcp_tx_status_TVALID(tcp_tx_status_tvalid),
-  .tcp_tx_status_TREADY(tcp_tx_status_tready),
+  .tcp_tx_req_tdata(tcp_tx_req_tdata),
+  .tcp_tx_req_tvalid(tcp_tx_req_tvalid),
+  .tcp_tx_req_tready(tcp_tx_req_tready),
 
-  .tcp_rx_data_V_data_V_TDATA(tcp_rx_data_tdata),
-  .tcp_rx_data_V_keep_V_TKEEP(tcp_rx_data_tkeep),
-  .tcp_rx_data_V_last_V_TLAST(tcp_rx_data_tlast),
-  .tcp_rx_data_V_strb_V_TSTRB(tcp_rx_data_tkeep),
-  .tcp_rx_data_V_data_V_TVALID(tcp_rx_data_tvalid),
-  .tcp_rx_data_V_data_V_TREADY(tcp_rx_data_V_data_V_TREADY),
-  .tcp_rx_data_V_keep_V_TVALID(tcp_rx_data_tvalid),
-  .tcp_rx_data_V_keep_V_TREADY(tcp_rx_data_V_keep_V_TREADY),
-  .tcp_rx_data_V_strb_V_TVALID(tcp_rx_data_tvalid),
-  .tcp_rx_data_V_strb_V_TREADY(tcp_rx_data_V_strb_V_TREADY),
-  .tcp_rx_data_V_last_V_TVALID(tcp_rx_data_tvalid),
-  .tcp_rx_data_V_last_V_TREADY(tcp_rx_data_V_last_V_TREADY),
+  .tcp_tx_rsp_tdata(tcp_tx_rsp_tdata),
+  .tcp_tx_rsp_tvalid(tcp_tx_rsp_tvalid),
+  .tcp_tx_rsp_tready(tcp_tx_rsp_tready),
 
-  .tcp_tx_data_V_data_V_TDATA(tcp_tx_data_tdata),
-  .tcp_tx_data_V_keep_V_TKEEP(tcp_tx_data_tkeep),
-  .tcp_tx_data_V_last_V_TLAST(tcp_tx_data_tlast),
-  .tcp_tx_data_V_strb_V_TSTRB(tcp_tx_data_tkeep),
-  .tcp_tx_data_V_data_V_TVALID(tcp_tx_data_V_data_V_TVALID),
-  .tcp_tx_data_V_data_V_TREADY(tcp_tx_data_tready),
-  .tcp_tx_data_V_keep_V_TVALID(tcp_tx_data_V_keep_V_TVALID),
-  .tcp_tx_data_V_keep_V_TREADY(tcp_tx_data_tready),
-  .tcp_tx_data_V_strb_V_TVALID(tcp_tx_data_V_strb_V_TVALID),
-  .tcp_tx_data_V_strb_V_TREADY(tcp_tx_data_tready),
-  .tcp_tx_data_V_last_V_TVALID(tcp_tx_data_V_last_V_TVALID),
-  .tcp_tx_data_V_last_V_TREADY(tcp_tx_data_tready),
+  .tcp_tx_data_tvalid(tcp_tx_data_tvalid),
+  .tcp_tx_data_tready(tcp_tx_data_tready),
+  .tcp_tx_data_tdata(tcp_tx_data_tdata),
+  .tcp_tx_data_tkeep(tcp_tx_data_tkeep),
+  .tcp_tx_data_tlast(tcp_tx_data_tlast),
 
   //
   // APPLICATION
   //
   
-  .http_request_TDATA(http_request_tdata),
-  .http_request_TVALID(http_request_tvalid),
-  .http_request_TREADY(http_request_tready),
+  .http_request_tdata(http_request_tdata),
+  .http_request_tvalid(http_request_tvalid),
+  .http_request_tready(http_request_tready),
 
-  .http_request_headers_V_data_V_TDATA(http_request_headers_tdata),
-  .http_request_headers_V_keep_V_TKEEP(http_request_headers_tkeep),
-  .http_request_headers_V_last_V_TLAST(http_request_headers_tlast),
-  .http_request_headers_V_strb_V_TSTRB(http_request_headers_tkeep),
-  .http_request_headers_V_data_V_TVALID(http_request_headers_V_data_V_TVALID),
-  .http_request_headers_V_data_V_TREADY(http_request_headers_tready),
-  .http_request_headers_V_keep_V_TVALID(http_request_headers_V_keep_V_TVALID),
-  .http_request_headers_V_keep_V_TREADY(http_request_headers_tready),
-  .http_request_headers_V_strb_V_TVALID(http_request_headers_V_strb_V_TVALID),
-  .http_request_headers_V_strb_V_TREADY(http_request_headers_tready),
-  .http_request_headers_V_last_V_TVALID(http_request_headers_V_last_V_TVALID),
-  .http_request_headers_V_last_V_TREADY(http_request_headers_tready),
-
-  .http_request_body_V_data_V_TDATA(http_request_body_tdata),
-  .http_request_body_V_keep_V_TKEEP(http_request_body_tkeep),
-  .http_request_body_V_last_V_TLAST(http_request_body_tlast),
-  .http_request_body_V_strb_V_TSTRB(http_request_body_tkeep),
-  .http_request_body_V_data_V_TVALID(http_request_body_V_data_V_TVALID),
-  .http_request_body_V_data_V_TREADY(http_request_body_tready),
-  .http_request_body_V_keep_V_TVALID(http_request_body_V_keep_V_TVALID),
-  .http_request_body_V_keep_V_TREADY(http_request_body_tready),
-  .http_request_body_V_strb_V_TVALID(http_request_body_V_strb_V_TVALID),
-  .http_request_body_V_strb_V_TREADY(http_request_body_tready),
-  .http_request_body_V_last_V_TVALID(http_request_body_V_last_V_TVALID),
-  .http_request_body_V_last_V_TREADY(http_request_body_tready),
-
-  .http_response_TDATA(http_response_tdata),
-  .http_response_TVALID(http_response_tvalid),
-  .http_response_TREADY(http_response_tready),
-
-  .http_response_headers_V_data_V_TDATA(http_response_headers_tdata),
-  .http_response_headers_V_keep_V_TKEEP(http_response_headers_tkeep),
-  .http_response_headers_V_last_V_TLAST(http_response_headers_tlast),
-  .http_response_headers_V_strb_V_TSTRB(http_response_headers_tkeep),
-  .http_response_headers_V_data_V_TVALID(http_response_headers_tvalid),
-  .http_response_headers_V_data_V_TREADY(http_response_headers_V_data_V_TREADY),
-  .http_response_headers_V_keep_V_TVALID(http_response_headers_tvalid),
-  .http_response_headers_V_keep_V_TREADY(http_response_headers_V_keep_V_TREADY),
-  .http_response_headers_V_strb_V_TVALID(http_response_headers_tvalid),
-  .http_response_headers_V_strb_V_TREADY(http_response_headers_V_strb_V_TREADY),
-  .http_response_headers_V_last_V_TVALID(http_response_headers_tvalid),
-  .http_response_headers_V_last_V_TREADY(http_response_headers_V_last_V_TREADY),
-
-  .http_response_body_V_data_V_TDATA(http_response_body_tdata),
-  .http_response_body_V_keep_V_TKEEP(http_response_body_tkeep),
-  .http_response_body_V_last_V_TLAST(http_response_body_tlast),
-  .http_response_body_V_strb_V_TSTRB(http_response_body_tkeep),
-  .http_response_body_V_data_V_TVALID(http_response_body_tvalid),
-  .http_response_body_V_data_V_TREADY(http_response_body_V_data_V_TREADY),
-  .http_response_body_V_keep_V_TVALID(http_response_body_tvalid),
-  .http_response_body_V_keep_V_TREADY(http_response_body_V_keep_V_TREADY),
-  .http_response_body_V_strb_V_TVALID(http_response_body_tvalid),
-  .http_response_body_V_strb_V_TREADY(http_response_body_V_strb_V_TREADY),
-  .http_response_body_V_last_V_TVALID(http_response_body_tvalid),
-  .http_response_body_V_last_V_TREADY(http_response_body_V_last_V_TREADY)
+  .http_request_headers_tvalid(http_request_headers_tvalid),
+  .http_request_headers_tready(http_request_headers_tready),
+  .http_request_headers_tdata(http_request_headers_tdata),
+  .http_request_headers_tkeep(http_request_headers_tkeep),
+  .http_request_headers_tlast(http_request_headers_tlast),
+  
+  .http_request_body_tvalid(http_request_body_tvalid),
+  .http_request_body_tready(http_request_body_tready),
+  .http_request_body_tdata(http_request_body_tdata),
+  .http_request_body_tkeep(http_request_body_tkeep),
+  .http_request_body_tlast(http_request_body_tlast),
+  
+  .http_response_tvalid(http_response_tvalid),
+  .http_response_tready(http_response_tready),
+  .http_response_tdata(http_response_tdata),
+  
+  .http_response_headers_tvalid(http_response_headers_tvalid),
+  .http_response_headers_tready(http_response_headers_tready),
+  .http_response_headers_tdata(http_response_headers_tdata),
+  .http_response_headers_tkeep(http_response_headers_tkeep),
+  .http_response_headers_tlast(http_response_headers_tlast),
+  
+  .http_response_body_tvalid(http_response_body_tvalid),
+  .http_response_body_tready(http_response_body_tready),
+  .http_response_body_tdata(http_response_body_tdata),
+  .http_response_body_tkeep(http_response_body_tkeep),
+  .http_response_body_tlast(http_response_body_tlast)
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 // UNUSED SIGNALS
 ///////////////////////////////////////////////////////////////////////////////
 
-assign tcp_listen_port_tkeep = {C_TCP_LISTEN_PORT_TDATA_WIDTH/8{1'b1}};
-assign tcp_listen_port_tlast = 1'b1;
+assign http_request_tkeep = {C_HTTP_REQUEST_TDATA_WIDTH/8{1'b1}};
+assign http_request_tlast = 1'b1;
+
+assign tcp_listen_req_tkeep = {C_TCP_LISTEN_REQ_TDATA_WIDTH/8{1'b1}};
+assign tcp_listen_req_tlast = 1'b1;
 
 assign tcp_open_conn_tvalid = 1'b0;
 assign tcp_open_conn_tdata = {C_TCP_OPEN_CONN_TDATA_WIDTH{1'b0}};
@@ -435,11 +372,11 @@ assign tcp_close_conn_tdata = {C_TCP_CLOSE_CONN_TDATA_WIDTH{1'b0}};
 assign tcp_close_conn_tkeep = {C_TCP_CLOSE_CONN_TDATA_WIDTH/8{1'b0}};
 assign tcp_close_conn_tlast = 1'b1;
 
-assign tcp_read_pkg_tkeep = {C_TCP_READ_PKG_TDATA_WIDTH/8{1'b1}};
-assign tcp_read_pkg_tlast = 1'b1;
+assign tcp_rx_req_tkeep = {C_TCP_RX_REQ_TDATA_WIDTH/8{1'b1}};
+assign tcp_rx_req_tlast = 1'b1;
 
-assign tcp_tx_meta_tkeep = {C_TCP_TX_META_TDATA_WIDTH/8{1'b1}};
-assign tcp_tx_meta_tlast = 1'b1;
+assign tcp_tx_req_tkeep = {C_TCP_TX_REQ_TDATA_WIDTH/8{1'b1}};
+assign tcp_tx_req_tlast = 1'b1;
 
 assign udp_rx_tready = 1'b0;
 assign udp_tx_tvalid = 1'b0;
