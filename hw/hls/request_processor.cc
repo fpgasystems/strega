@@ -61,14 +61,14 @@ void state_machine(
       tcp_notification_pkt notif = tcp_notification.read();
 
       if (notif.length != 0) {
-        tcp_xx_req_pkt rreq;
-        rreq.sessionID = notif.sessionID;
-        rreq.length = notif.length;
+        tcp_xx_req_pkt rx_req;
+        rx_req.sessionID = notif.sessionID;
+        rx_req.length = notif.length;
 
         http_session_spt session;
         session.id = notif.sessionID;
 
-        tcp_rx_req.write(rreq);
+        tcp_rx_req.write(rx_req);
         req_session.write(session);
 
         state = fsm_state::META;

@@ -194,7 +194,7 @@ wire                                             slice_http_response_body_tlast;
 
 assign slice_tcp_rx_data_tstrb = {C_TCP_RX_DATA_TDATA_WIDTH/8{1'b1}};
 assign slice_http_response_headers_tstrb = {C_HTTP_RESPONSE_HEADERS_TDATA_WIDTH/8{1'b1}};
-assign slice_http_response_body_tstrb = {C_HTTP_RESPONSE_BODY_TDATA_WIDTH/8{1'b1}}
+assign slice_http_response_body_tstrb = {C_HTTP_RESPONSE_BODY_TDATA_WIDTH/8{1'b1}};
 
 wire tcp_rx_data_V_data_V_TREADY;
 wire tcp_rx_data_V_keep_V_TREADY;

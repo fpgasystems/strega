@@ -43,8 +43,17 @@ void http_top (
 #pragma HLS INTERFACE axis port=http_response_headers
 #pragma HLS INTERFACE axis port=http_response_body
 
+#pragma HLS aggregate variable=tcp_listen_req compact=bit
+#pragma HLS aggregate variable=tcp_listen_rsp compact=bit
+#pragma HLS aggregate variable=tcp_notification compact=bit
+#pragma HLS aggregate variable=tcp_rx_req compact=bit
+#pragma HLS aggregate variable=tcp_rx_rsp compact=bit
+#pragma HLS aggregate variable=tcp_tx_req compact=bit
+#pragma HLS aggregate variable=tcp_tx_rsp compact=bit
+
 #pragma HLS INTERFACE ap_ctrl_none port=return
 #pragma HLS DATAFLOW disable_start_propagation
+
 
   listen_port(
     tcp_listen_req,

@@ -22,7 +22,6 @@ struct tcp_notification_pkt {
   ap_uint<32> ipAddress;
   ap_uint<16> dstPort;
   bool closed;
-
   tcp_notification_pkt() {}
   // tcp_notification_pkt(pkt128 raw)
   //   :sessionID(raw.data(15,0)),
