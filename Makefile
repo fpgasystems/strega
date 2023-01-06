@@ -20,6 +20,14 @@ BUILD_DIR := ./build/ips
 VPP := v++
 CMD_ARGS = $(BUILD_DIR)/${XCLBIN_NAME}.xclbin
 
+include ./vitis-network-stack/common/includes/opencl/opencl.mk
+xcl2_SRCS:=./vitis-network-stack/common/includes/xcl2/xcl2.cpp
+xcl2_HDRS:=./vitis-network-stack/common/includes/xcl2/xcl2.hpp
+xcl2_CXXFLAGS:=-I./vitis-network-stack/common/includes/xcl2
+CXXFLAGS += $(xcl2_CXXFLAGS)
+LDFLAGS += $(xcl2_LDFLAGS) -lOpenCL
+HOST_SRCS += $(xcl2_SRCS)
+
 CXXFLAGS += -I$(XILINX_XRT)/include -I$(XILINX_VIVADO)/include -Wall -O0 -g -std=c++17
 LDFLAGS += -L$(XILINX_XRT)/lib -pthread -lxrt_coreutil
 
@@ -45,7 +53,7 @@ EMU_DIR = $(SDCARD)/data/emulation
 
 ############################## Declaring Binary Containers ##############################
 BINARY_CONTAINERS += $(BUILD_DIR)/${XCLBIN_NAME}.xclbin
-BINARY_CONTAINER_krnl_dump_OBJS += $(BUILD_DIR)/http.xo $(BUILD_DIR)/cmac_krnl.xo $(BUILD_DIR)/network_krnl.xo
+BINARY_CONTAINER_krnl_dump_OBJS += $(BUILD_DIR)/http.xo $(BUILD_DIR)/cmac_krnl.xo $(BUILD_DIR)/network_krnl.xo $(BUILD_DIR)/static_pages.xo
 
 ############################## Cleaning Rules ##############################
 # Cleaning stuff
@@ -70,11 +78,18 @@ vv:
 .PHONY: http
 http: build/ips/http.xo
 
+.PHONY: static_pages
+static_pages: build/ips/static_pages.xo
+
 .PHONY: bitstream
 bitstream: $(BUILD_DIR)/${XCLBIN_NAME}.xclbin
 
 .PHONY: host
 host: $(EXECUTABLE)
+
+build/ips/static_pages.xo: examples/static_pages/hw/static_pages.cc hw/hls/tcp_utils.h hw/hls/http_lib.h
+	$(VPP) $(VPP_FLAGS) -c -k static_pages -o build/ips/static_pages.xo --input_files \
+		examples/static_pages/hw/static_pages.cc
 
 build/ips/http.xo:
 	$(VPP) $(VPP_FLAGS) -c -k wrapper_easynet -o build/ips/http.xo --input_files \
@@ -86,8 +101,7 @@ build/ips/http.xo:
 		hw/hls/request_processor.cc \
 		hw/hls/response_processor.cc \
 		hw/hls/status_code_parser.cc \
-		hw/hls/wrapper_easynet.cc \
-		examples/static_pages/hw/static_pages.cc
+		hw/hls/wrapper_easynet.cc
 
 $(EXECUTABLE): $(HOST_SRCS)
 	$(CXX) $(CXXFLAGS) $(HOST_SRCS) -o '$@' $(LDFLAGS)
