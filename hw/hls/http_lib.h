@@ -94,7 +94,7 @@ struct http_headline_ispt {
 
 struct http_headline_ospt {
   HttpMethod method;
-  ap_uint<HTTP_DATA_WIDTH> endpoint;
+  // ap_uint<HTTP_DATA_WIDTH> endpoint;
 };
 
 struct http_status_code_ospt {
@@ -110,7 +110,7 @@ struct http_request_spt
 {
   http_meta meta;
   HttpMethod method;
-  ap_uint<HTTP_DATA_WIDTH> endpoint;
+  // ap_uint<HTTP_DATA_WIDTH> endpoint;
   http_request_spt() {}
 };
 

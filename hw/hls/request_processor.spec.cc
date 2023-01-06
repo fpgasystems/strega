@@ -19,8 +19,8 @@ int main (int argc, char* argv[]) {
   hls::stream<pkt16> tcp_rx_meta("tcp_rx_meta");
   hls::stream<pkt512> tcp_rx_data("tcp_rx_data");
   hls::stream<http_request_spt> http_request("http_request");
-  hls::stream<axi_stream_ispt> http_request_headers("http_request_headers");
-  hls::stream<axi_stream_ispt> http_request_body("http_request_body");
+  hls::stream<pkt512> http_request_headers("http_request_headers");
+  hls::stream<pkt512> http_request_body("http_request_body");
 
   //
   // mock data

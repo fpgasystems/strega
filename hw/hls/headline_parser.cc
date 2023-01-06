@@ -19,11 +19,11 @@ void headline_parser (
 ) {
   static fsm_state state = fsm_state::INPUT_READ;
   static ap_uint<512> line;
-  static ap_uint<512> endpoint;
+  // static ap_uint<512> endpoint;
   static HttpMethod method;
   #pragma HLS reset variable=state
   #pragma HLS reset variable=line off
-  #pragma HLS reset variable=endpoint off
+  // #pragma HLS reset variable=endpoint off
   #pragma HLS reset variable=method off
 
   switch (state) {
@@ -47,7 +47,7 @@ void headline_parser (
 
     case fsm_state::EXTRACT_ENDPOINT:
     {
-      endpoint = line;
+      // endpoint = line;
       // TODO finds endpoint start and endpoint end
       state = fsm_state::OUTPUT_WRITE;
       break;
@@ -57,7 +57,7 @@ void headline_parser (
     {
       http_headline_ospt result;
       result.method = method;
-      result.endpoint = endpoint;
+      // result.endpoint = endpoint;
       output.write(result);
       state = fsm_state::INPUT_READ;
       break;

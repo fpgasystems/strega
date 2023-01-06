@@ -19,8 +19,8 @@ int main (int argc, char* argv[]) {
   hls::stream<pkt512> tcp_tx_data("tcp_tx_data");
   hls::stream<pkt64> tcp_tx_status("tcp_tx_status");
   hls::stream<http_response_spt> http_response("http_response");
-  hls::stream<axi_stream_ispt> http_response_headers("http_response_headers");
-  hls::stream<axi_stream_ispt> http_response_body("http_response_body");
+  hls::stream<pkt512> http_response_headers("http_response_headers");
+  hls::stream<pkt512> http_response_body("http_response_body");
 
   //
   // mock data
@@ -72,7 +72,7 @@ int main (int argc, char* argv[]) {
     http_response_pkt.headers_size = headers.size();
     http_response.write(http_response_pkt);
 
-    axi_stream_ispt tx_data;
+    pkt512 tx_data;
     tx_data.last = false;
     tx_data.keep = -1;
 

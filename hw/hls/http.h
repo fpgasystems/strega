@@ -21,11 +21,11 @@ void http_top (
   hls::stream<pkt64>& tcp_tx_status,
   // Application
   hls::stream<http_request_spt>& http_request,
-  hls::stream<axi_stream_ispt>& http_request_headers,
-  hls::stream<axi_stream_ispt>& http_request_body,
+  hls::stream<pkt512>& http_request_headers,
+  hls::stream<pkt512>& http_request_body,
   hls::stream<http_response_spt>& http_response,
-  hls::stream<axi_stream_ispt>& http_response_headers,
-  hls::stream<axi_stream_ispt>& http_response_body
+  hls::stream<pkt512>& http_response_headers,
+  hls::stream<pkt512>& http_response_body
   );
 
 } // namespace http

@@ -26,8 +26,8 @@ void state_machine(
   hls::stream<http_status_code_ospt>& resp_status_line,
   // APPLICATION
   hls::stream<http_response_spt>& http_response,
-  hls::stream<axi_stream_ispt>& http_response_headers,
-  hls::stream<axi_stream_ispt>& http_response_body
+  hls::stream<pkt512>& http_response_headers,
+  hls::stream<pkt512>& http_response_body
 ) {
 #pragma HLS PIPELINE II=1
 #pragma HLS INLINE off
@@ -97,7 +97,7 @@ void state_machine(
 
     case fsm_state::DATA_HEADERS:
     {
-      axi_stream_ispt in = http_response_headers.read();
+      pkt512 in = http_response_headers.read();
       pkt512 out;
       out.data = in.data;
       out.keep = in.keep;
@@ -124,7 +124,7 @@ void state_machine(
 
     case fsm_state::DATA_BODY:
     {
-      axi_stream_ispt in = http_response_body.read();
+      pkt512 in = http_response_body.read();
       pkt512 out;
       out.data = in.data;
       out.keep = in.keep;
@@ -159,8 +159,8 @@ void response_processor (
   // INTERNAL
   // APPLICATION
   hls::stream<http_response_spt>& http_response,
-  hls::stream<axi_stream_ispt>& http_response_headers,
-  hls::stream<axi_stream_ispt>& http_response_body
+  hls::stream<pkt512>& http_response_headers,
+  hls::stream<pkt512>& http_response_body
 ) {
 #pragma HLS DATAFLOW disable_start_propagation
 

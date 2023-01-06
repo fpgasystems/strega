@@ -14,8 +14,8 @@ enum class fsm_state {
 
 void req_payload_parser(
   hls::stream<axi_stream_ispt>& input,
-  hls::stream<axi_stream_ispt>& headers,
-  hls::stream<axi_stream_ispt>& body
+  hls::stream<pkt512>& headers,
+  hls::stream<pkt512>& body
 ) {
   static fsm_state state = fsm_state::HEADER_READ;
   static axi_stream_ispt line;
@@ -36,7 +36,7 @@ void req_payload_parser(
       // TODO
       // if detected end of header, switch to body
       line.last = true;
-      headers.write(line);
+      headers.write(line.serialise());
       state = fsm_state::BODY_READ;
       break;
     }
@@ -48,7 +48,7 @@ void req_payload_parser(
     }
     case fsm_state::BODY_WRITE:
     {
-      body.write(line);
+      body.write(line.serialise());
 
       if (line.last) {
         state = fsm_state::HEADER_READ;

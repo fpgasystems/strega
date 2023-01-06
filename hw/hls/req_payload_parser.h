@@ -10,8 +10,8 @@ namespace http {
 
 void req_payload_parser (
   hls::stream<axi_stream_ispt>& input,
-  hls::stream<axi_stream_ispt>& headers,
-  hls::stream<axi_stream_ispt>& body
+  hls::stream<pkt512>& headers,
+  hls::stream<pkt512>& body
 );
 
 } // namespace http

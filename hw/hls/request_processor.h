@@ -17,8 +17,8 @@ void request_processor (
   // INTERNAL
   // APPLICATION
   hls::stream<http_request_spt>& http_request,
-  hls::stream<axi_stream_ispt>& http_request_headers,
-  hls::stream<axi_stream_ispt>& http_request_body
+  hls::stream<pkt512>& http_request_headers,
+  hls::stream<pkt512>& http_request_body
 );
 
 } // namespace http

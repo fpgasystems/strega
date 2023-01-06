@@ -29,7 +29,7 @@ void request_issuer(
     request.meta.method = headline.method;
     request.meta.sessionID = session.id;
     request.method = headline.method;
-    request.endpoint = headline.endpoint;
+    // request.endpoint = headline.endpoint;
 
     http_request.write(request);
   }
@@ -118,8 +118,8 @@ void request_processor (
   // INTERNAL
   // APPLICATION
   hls::stream<http_request_spt>& http_request,
-  hls::stream<axi_stream_ispt>& http_request_headers,
-  hls::stream<axi_stream_ispt>& http_request_body
+  hls::stream<pkt512>& http_request_headers,
+  hls::stream<pkt512>& http_request_body
 ) {
 #pragma HLS DATAFLOW disable_start_propagation
 
