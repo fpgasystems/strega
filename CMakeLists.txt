@@ -17,26 +17,26 @@ set(HTTP_IP_DIR ${CMAKE_BINARY_DIR}/ips CACHE STRING "IP build directory")
 
 # Source
 set(HTTP_HW_SOURCE_FILES
-  "hw/headline_parser.cc"
-  "hw/http.cc"
-  "hw/listen_port.cc"
-  "hw/method_parser.cc"
-  "hw/req_payload_parser.cc"
-  "hw/request_processor.cc"
-  "hw/response_processor.cc"
-  "hw/status_code_parser.cc")
+  "hw/hls/headline_parser.cc"
+  "hw/hls/http.cc"
+  "hw/hls/listen_port.cc"
+  "hw/hls/method_parser.cc"
+  "hw/hls/req_payload_parser.cc"
+  "hw/hls/request_processor.cc"
+  "hw/hls/response_processor.cc"
+  "hw/hls/status_code_parser.cc")
 
 set(HTTP_HW_SOURCE_FILES_H
-  "hw/headline_parser.h"
-  "hw/http_lib.h"
-  "hw/http.h"
-  "hw/listen_port.h"
-  "hw/method_parser.h"
-  "hw/req_payload_parser.h"
-  "hw/request_processor.h"
-  "hw/response_processor.h"
-  "hw/status_code_parser.h"
-  "hw/tcp_utils.h")
+  "hw/hls/headline_parser.h"
+  "hw/hls/http_lib.h"
+  "hw/hls/http.h"
+  "hw/hls/listen_port.h"
+  "hw/hls/method_parser.h"
+  "hw/hls/req_payload_parser.h"
+  "hw/hls/request_processor.h"
+  "hw/hls/response_processor.h"
+  "hw/hls/status_code_parser.h"
+  "hw/hls/tcp_utils.h")
 
 set(HTTP_SW_SOURCE_FILES
   "sw/host.cc")
@@ -71,8 +71,8 @@ set(IPREPO_DIR ${HTTP_IP_DIR} CACHE STRING "IP build directory")
 add_subdirectory(vitis-network-stack)
 
 # add_vitis_kernel(network
-#                  FILES hw/headline_parser.cc hw/http.cc hw/listen_port.cc
-#                  hw/method_parser.cc hw/req_payload_parser.cc hw/request_processor.cc
+#                  FILES hw/hls/headline_parser.cc hw/hls/http.cc hw/hls/listen_port.cc
+#                  hw/hls/method_parser.cc hw/hls/req_payload_parser.cc hw/hls/request_processor.cc
 #                  KERNEL "network_krnl")
 #                  #DEPENDS include/MyHeader.h include/OtherDependency.h
 #                  #INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include hlslib/include

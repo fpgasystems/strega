@@ -78,15 +78,15 @@ host: $(EXECUTABLE)
 
 build/ips/http.xo:
 	$(VPP) $(VPP_FLAGS) -c -k wrapper_easynet -o build/ips/http.xo --input_files \
-		hw/headline_parser.cc \
-		hw/http.cc \
-		hw/listen_port.cc \
-		hw/method_parser.cc \
-		hw/req_payload_parser.cc \
-		hw/request_processor.cc \
-		hw/response_processor.cc \
-		hw/status_code_parser.cc \
-		hw/wrapper_easynet.cc \
+		hw/hls/headline_parser.cc \
+		hw/hls/http.cc \
+		hw/hls/listen_port.cc \
+		hw/hls/method_parser.cc \
+		hw/hls/req_payload_parser.cc \
+		hw/hls/request_processor.cc \
+		hw/hls/response_processor.cc \
+		hw/hls/status_code_parser.cc \
+		hw/hls/wrapper_easynet.cc \
 		examples/static_pages/hw/static_pages.cc
 
 $(EXECUTABLE): $(HOST_SRCS)
