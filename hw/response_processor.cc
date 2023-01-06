@@ -113,7 +113,7 @@ void state_machine(
       pkt512 raw;
       raw.data(7,0) = 0x0A;
       raw.data(15,8) = 0x0A;
-      raw.keep(1, 2) = -1;
+      raw.keep(1, 0) = -1;
       raw.keep(63, 2) = 0;
       raw.last = false;
       tcp_tx_data.write(raw);
@@ -140,7 +140,7 @@ void state_machine(
       pkt512 raw;
       raw.data(7,0) = 0x0A;
       raw.data(15,8) = 0x0A;
-      raw.keep(1, 2) = -1;
+      raw.keep(1, 0) = -1;
       raw.keep(63, 2) = 0;
       raw.last = true;
       tcp_tx_data.write(raw);
