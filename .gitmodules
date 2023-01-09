@@ -1,6 +1,8 @@
 [submodule "external/vitis-network-stack"]
 	path = vitis-network-stack
-	url = git@gitlab.inf.ethz.ch:kodario/vitis_network.git
+  url = git@gitlab.inf.ethz.ch:kodario/vitis_network.git
+  branch = misc/xilinx-cmake
 [submodule "external/xilinx-cmake"]
 	path = xilinx-cmake
-	url = git@gitlab.inf.ethz.ch:maschif/xilinx-cmake.git
+  url = git@gitlab.inf.ethz.ch:maschif/xilinx-cmake.git
+  branch = main
