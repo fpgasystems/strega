@@ -10,24 +10,23 @@ namespace http {
 enum class fsm_state {
   IDLE,
   NOTIFICATION,
-  META,
+  HANDSHAKE,
   DATA_HEADLINE,
   DATA_PAYLOAD
 };
 
 void request_issuer(
   hls::stream<http_headline_ospt>& headline_out,
-  hls::stream<http_session_spt>& req_session,
   hls::stream<http_request_spt>& http_request
 ) {
+  #pragma HLS INLINE off
 
-  if (!headline_out.empty() && !req_session.empty()) {
+  if (!headline_out.empty()) {
     http_headline_ospt headline = headline_out.read();
-    http_session_spt session = req_session.read();
 
     http_request_spt request;
     request.meta.method = headline.method;
-    request.meta.sessionID = session.id;
+    request.meta.sessionID = headline.sessionID;
     request.method = headline.method;
     // request.endpoint = headline.endpoint;
 
@@ -40,14 +39,15 @@ void state_machine(
   hls::stream<tcp_xx_req_pkt>& tcp_rx_req,
   hls::stream<ap_uint<16>>& tcp_rx_rsp,
   hls::stream<pkt512>& tcp_rx_data,
-  hls::stream<http_session_spt>& req_session,
   hls::stream<http_headline_ispt>& headline,
   hls::stream<axi_stream_ispt>& payload_in
 ) {
-#pragma HLS PIPELINE II=1
-#pragma HLS INLINE off
+  #pragma HLS INLINE off
+
   static fsm_state state = fsm_state::IDLE;
   #pragma HLS reset variable=state
+  static ap_uint<HTTP_SESSION_WIDTH> sessionID;
+  #pragma HLS reset variable=sessionID off
 
   switch (state) {
     case fsm_state::IDLE:
@@ -65,20 +65,18 @@ void state_machine(
         rx_req.sessionID = notif.sessionID;
         rx_req.length = notif.length;
 
-        http_session_spt session;
-        session.id = notif.sessionID;
+        sessionID = notif.sessionID;
 
         tcp_rx_req.write(rx_req);
-        req_session.write(session);
 
-        state = fsm_state::META;
+        state = fsm_state::HANDSHAKE;
       } else {
         state = fsm_state::IDLE;
       }
       break;
     }
 
-    case fsm_state::META:
+    case fsm_state::HANDSHAKE:
     {
       ap_uint<16> tmp = tcp_rx_rsp.read();
       state = fsm_state::DATA_HEADLINE;
@@ -90,6 +88,7 @@ void state_machine(
       pkt512 raw = tcp_rx_data.read();      
       http_headline_ispt pkt;
       pkt.line = raw.data;
+      pkt.sessionID = sessionID;
       headline.write(pkt);
       state = fsm_state::DATA_PAYLOAD;
       
@@ -120,19 +119,21 @@ void request_processor (
   hls::stream<pkt512>& http_request_headers,
   hls::stream<pkt512>& http_request_body
 ) {
-#pragma HLS DATAFLOW disable_start_propagation
+  #pragma HLS DATAFLOW
 
   static hls::stream<http_headline_ispt> headline_in("headline_in");
   static hls::stream<http_headline_ospt> headline_out("headline_out");
-  static hls::stream<http_session_spt> req_session("req_session");
   static hls::stream<axi_stream_ispt> payload_in("payload_in");
+
+  #pragma HLS stream variable=headline_in type=fifo depth=16
+  #pragma HLS stream variable=headline_out type=fifo depth=1
+  #pragma HLS stream variable=payload_in type=fifo depth=16
 
   state_machine(
     tcp_notification,
     tcp_rx_req,
     tcp_rx_rsp,
     tcp_rx_data,
-    req_session,
     headline_in,
     payload_in);
   
@@ -142,7 +143,6 @@ void request_processor (
 
   request_issuer(
     headline_out,
-    req_session,
     http_request);
   
   req_payload_parser(

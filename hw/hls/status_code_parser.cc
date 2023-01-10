@@ -68,6 +68,7 @@ void status_code_parser(
   static fsm_state state = fsm_state::IDLE;
   static HttpStatus status_code;
   #pragma HLS reset variable=state
+  #pragma HLS reset variable=status_code off
 
   switch (state) {
     case fsm_state::IDLE:

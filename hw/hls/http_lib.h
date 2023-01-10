@@ -84,16 +84,14 @@ struct http_meta
 };
 
 // Stream Payload Types
-struct http_session_spt {
-  ap_uint<HTTP_SESSION_WIDTH> id;
-};
-
 struct http_headline_ispt {
   ap_uint<HTTP_DATA_WIDTH> line;
+  ap_uint<HTTP_SESSION_WIDTH> sessionID;
 };
 
 struct http_headline_ospt {
   HttpMethod method;
+  ap_uint<HTTP_SESSION_WIDTH> sessionID;
   // ap_uint<HTTP_DATA_WIDTH> endpoint;
 };
 

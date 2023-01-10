@@ -29,26 +29,29 @@ void state_machine(
   hls::stream<pkt512>& http_response_headers,
   hls::stream<pkt512>& http_response_body
 ) {
-#pragma HLS PIPELINE II=1
-#pragma HLS INLINE off
+  #pragma HLS INLINE off
+
   static fsm_state state = fsm_state::IDLE;
   #pragma HLS reset variable=state
+  static http_response_spt app_response;
+  #pragma HLS reset variable=app_response off
 
   switch (state) {
     case fsm_state::IDLE:
     {
-      state = (http_response.empty()) ? fsm_state::IDLE : fsm_state::APPLICATION_RESPONSE;
+      if (!http_response.empty()) {
+        app_response = http_response.read();
+        resp_status_code.write(app_response.status_code);
+        state = fsm_state::APPLICATION_RESPONSE;
+      }
       break;
     }
 
     case fsm_state::APPLICATION_RESPONSE:
     {
-      http_response_spt raw = http_response.read();
-      resp_status_code.write(raw.status_code);
-
       tcp_xx_req_pkt meta;
-      meta.sessionID = raw.meta.sessionID;
-      meta.length = raw.body_size + raw.headers_size; // TOOD + status code + end of lines
+      meta.sessionID = app_response.meta.sessionID;
+      meta.length = app_response.body_size + app_response.headers_size; // TOOD + status code + end of lines
       tcp_tx_req.write(meta);
 
       state = fsm_state::META;
@@ -162,10 +165,13 @@ void response_processor (
   hls::stream<pkt512>& http_response_headers,
   hls::stream<pkt512>& http_response_body
 ) {
-#pragma HLS DATAFLOW disable_start_propagation
+#pragma HLS DATAFLOW
 
   static hls::stream<HttpStatus> resp_status_code("resp_status_code");
   static hls::stream<http_status_code_ospt> resp_status_line("resp_status_line");
+
+  #pragma HLS stream variable=resp_status_code type=fifo depth=16
+  #pragma HLS stream variable=resp_status_line type=fifo depth=16
 
   state_machine(
     tcp_tx_req,

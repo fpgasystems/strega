@@ -19,18 +19,24 @@ void headline_parser (
 ) {
   static fsm_state state = fsm_state::INPUT_READ;
   static ap_uint<512> line;
-  // static ap_uint<512> endpoint;
   static HttpMethod method;
+  static ap_uint<HTTP_SESSION_WIDTH> sessionID;
+
   #pragma HLS reset variable=state
   #pragma HLS reset variable=line off
-  // #pragma HLS reset variable=endpoint off
   #pragma HLS reset variable=method off
+  #pragma HLS reset variable=sessionID off
+  
+  // static ap_uint<512> endpoint;
+  // #pragma HLS reset variable=endpoint off
 
   switch (state) {
     case fsm_state::INPUT_READ:
     {
       if (!input.empty()) {
-        line = input.read().line;
+        auto raw = input.read();
+        sessionID = raw.sessionID;
+        line = raw.line;
         state = fsm_state::PARSE_METHOD;
       }
       break;
@@ -57,6 +63,7 @@ void headline_parser (
     {
       http_headline_ospt result;
       result.method = method;
+      result.sessionID = sessionID;
       // result.endpoint = endpoint;
       output.write(result);
       state = fsm_state::INPUT_READ;

@@ -52,7 +52,7 @@ void http_top (
 #pragma HLS aggregate variable=tcp_tx_rsp compact=bit
 
 #pragma HLS INTERFACE ap_ctrl_none port=return
-#pragma HLS DATAFLOW disable_start_propagation
+#pragma HLS DATAFLOW
 
 
   listen_port(
