@@ -1,12 +1,11 @@
 set path_to_hdl "${CMAKE_CURRENT_SOURCE_DIR}/hw/rtl"
-set path_to_packaged "./packaged_kernel_${GENXO_KRNL_NAME}"
-set path_to_tmp_project "./tmp_kernel_pack_${GENXO_KRNL_NAME}"
+set path_to_packaged "./packaged_kernel_${HTTP_KERNEL_NAME}"
 
-create_project -force ${GENXO_KRNL_NAME} $path_to_tmp_project -part ${HTTP_PLATFORM_PART}
+create_project -force ${HTTP_KERNEL_NAME} -part ${HTTP_PLATFORM_PART}
 
 add_files -norecurse [glob $path_to_hdl/*.v $path_to_hdl/*.sv $path_to_hdl/*.svh ]
 
-set_property top ${GENXO_KRNL_NAME} [current_fileset]
+set_property top ${HTTP_KERNEL_NAME} [current_fileset]
 update_compile_order -fileset sources_1
 
 set __ip_list [get_property ip_repo_paths [current_project]]
