@@ -87,7 +87,7 @@ add_vivado_kernel(${HTTP_KERNEL_NAME}
                   FILES ${HTTP_HW_RTL_SOURCE_FILES}
                   IPS ${HTTP_IP_NAME}
                   IP_REPO ${HTTP_IP_DIR}
-                  XML_PATH /hw/vitis/kernel.xml)
+                  XML_PATH hw/vitis/kernel.xml)
 
 #
 # static-pages application
