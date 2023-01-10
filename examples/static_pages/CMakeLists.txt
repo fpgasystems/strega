@@ -24,18 +24,3 @@ add_custom_target(kernel.static_pages
           --input_files ${CMAKE_CURRENT_SOURCE_DIR}/${APP_HW_HLS_SOURCE_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/${APP_HW_HLS_SOURCE_FILES_H}
           --platform ${HTTP_PLATFORM}
   DEPENDS ${APP_HW_HLS_SOURCE_FILES} ${APP_HW_HLS_SOURCE_FILES_H})
-
-add_dependencies(kernel kernel.static_pages)
-
-
-
-
-
-# add_vitis_ip(${PROJECT_NAME}
-#             FILES "hw/static_pages.cc" "hw/static_pages.h"
-#             PLATFORM_PART ${HTTP_PLATFORM_PART}
-#             VENDOR "ethz.systems.fpga"
-#             DISPLAY_NAME "FPGA Static Page WebServer"
-#             DESCRIPTION "Server static resources over http"
-#             VERSION ${PROJECT_VERSION}
-#             IP_DIR ${HTTP_IP_DIR})
