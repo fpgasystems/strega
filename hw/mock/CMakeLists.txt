@@ -13,6 +13,7 @@ set(MOCK_HTTP_SOURCES
   "../hls/method_parser.cc"
   "../hls/req_payload_parser.cc"
   "../hls/request_processor.cc"
+  "../hls/response_aligner.cc"
   "../hls/response_processor.cc"
   "../hls/status_code_parser.cc")
 hlslib_make_paths_absolute(MOCK_HTTP_SOURCES ${MOCK_HTTP_SOURCES})
@@ -60,7 +61,7 @@ add_custom_command(OUTPUT ${MOCK_LINK_XCLBIN}
   COMMENT "Compiling mock kernel app.hw_emu.xo"
   DEPENDS ${MOCK_LINK_SOURCES}
 	COMMAND ${Vitis_COMPILER} --platform ${HTTP_PLATFORM} -t hw_emu -g -l -o ${MOCK_LINK_XCLBIN} ${MOCK_LINK_SOURCES}
-    --config ${CMAKE_CURRENT_SOURCE_DIR}/connectivity.cfg)
+    --config ${CMAKE_CURRENT_SOURCE_DIR}/connectivity.cfg --vivado.synth.jobs 50 --vivado.impl.jobs 50)
 
 #
 # xclbin hw_emu

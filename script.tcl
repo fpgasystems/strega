@@ -10,18 +10,19 @@ set module [lindex $argv 3]
 
 # source files
 # add_files [glob hw/*.cc hw/*.h]
-add_files "hw/headline_parser.cc \
-  hw/http.cc \
-  hw/method_parser.cc \
-  hw/req_payload_parser.cc \
-  hw/request_processor.cc \
-  hw/response_processor.cc \
-  hw/listen_port.cc \
-  hw/status_code_parser.cc" \
+add_files "hw/hls/headline_parser.cc \
+  hw/hls/http.cc \
+  hw/hls/method_parser.cc \
+  hw/hls/req_payload_parser.cc \
+  hw/hls/request_processor.cc \
+  hw/hls/response_aligner.cc \
+  hw/hls/response_processor.cc \
+  hw/hls/listen_port.cc \
+  hw/hls/status_code_parser.cc" \
   -cflags "-Wno-unknown-pragmas" -csimflags "-Wno-unknown-pragmas"
 
 # testbench file
-add_files -tb hw/$module.spec.cc -cflags "-Wno-unknown-pragmas" -csimflags "-Wno-unknown-pragmas"
+add_files -tb hw/hls/$module.spec.cc -cflags "-Wno-unknown-pragmas" -csimflags "-Wno-unknown-pragmas"
 
 switch $command {
   csim {
