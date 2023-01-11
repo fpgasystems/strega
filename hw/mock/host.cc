@@ -11,10 +11,12 @@
 #define NETWORK_DATA_SIZE 62500
 
 #define ARGV_XCLBIN 1
+#define ARGV_HEADERS 2
+#define ARGV_BODY 3
 
 int main (int argc, char **argv) {
-  if (argc < ARGV_XCLBIN) {
-    std::cout << "Usage: " << argv[0] << " <.xclbin> <response.txt>" << std::endl;
+  if (argc < ARGV_BODY) {
+    std::cout << "Usage: " << argv[0] << " <.xclbin> <headers.txt> <body.txt>" << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -54,41 +56,84 @@ int main (int argc, char **argv) {
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////
-  // NETWORK KERNEL
+  // TCP_MOCK KERNEL
   ///////////////////////////////////////////////////////////////////////////////////////
 
-  // cl::Kernel network_kernel;
-  // OCL_CHECK(err, network_kernel = cl::Kernel(program, "tcp_mock", &err));
-
-  // OCL_CHECK(err, err = q.enqueueTask(network_kernel));
-  // OCL_CHECK(err, err = q.finish());
+  // nothing to do, autorun kernel
 
   ///////////////////////////////////////////////////////////////////////////////////////
-  // HTTP KERNEL
+  // STREGA HTTP KERNEL
   ///////////////////////////////////////////////////////////////////////////////////////
 
+  // nothing to do, autorun kernel
+
   ///////////////////////////////////////////////////////////////////////////////////////
-  // USER KERNEL
+  // APP KERNEL
   ///////////////////////////////////////////////////////////////////////////////////////
 
   cl::Kernel user_kernel;
   OCL_CHECK(err, user_kernel = cl::Kernel(program, "static_pages", &err));
 
-  // Request
-  uint32_t request_size = 1024; // bytes
-  std::vector<char, aligned_allocator<char>> request_data(request_size);
+  uint32_t header_length;
+  uint32_t body_pointer;
+  uint32_t body_length;
+
+  // Headers
+  std::string headers_path = argv[ARGV_HEADERS];
+  std::vector<char, aligned_allocator<char>>* headers_data;
+  std::ifstream file(headers_path, std::ios::in | std::ios::binary);
+  if (file.is_open()) {
+    file.seekg(0, std::ios::end);
+    header_length = file.tellg();
+    std::cout << "headers size: " << header_length << " bytes" << std::endl;
+
+    char* file_buffer = new char[header_length];
+    file.seekg(0, std::ios::beg);
+    file.read(file_buffer, header_length);
+
+    headers_data = new std::vector<char, aligned_allocator<char>>(header_length);
+    memcpy(headers_data->data(), file_buffer, header_length);
+    file.close();
+    delete [] file_buffer;
+  } else {
+    std::cerr << "[!] Failed to open HEADERS.txt file" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  // Body
+  std::string body_path = argv[ARGV_BODY];
+  std::vector<char, aligned_allocator<char>>* body_data;
+  file = std::ifstream(body_path, std::ios::in | std::ios::binary);
+  if (file.is_open()) {
+    file.seekg(0, std::ios::end);
+    body_length = file.tellg();
+    std::cout << "body size: " << body_length << " bytes" << std::endl;
+
+    char* file_buffer = new char[body_length];
+    file.seekg(0, std::ios::beg);
+    file.read(file_buffer, body_length);
+
+    body_data = new std::vector<char, aligned_allocator<char>>(body_length);
+    memcpy(body_data->data(), file_buffer, body_length);
+    file.close();
+    delete [] file_buffer;
+  } else {
+    std::cerr << "[!] Failed to open BODY.txt file" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  // std::vector<char, aligned_allocator<char>> buffff(header_length + body_length, 0);
   // OCL_CHECK(err,
-  //     cl::Buffer buffer_req(context,
-  //       CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY,
-  //       request_size,
-  //       request_data.data(),
+  //     cl::Buffer buffer_device(context,
+  //       CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+  //       header_length + body_length,
+  //       buffff.data(),
   //       &err));
-  
+
   uint32_t arg = 6;
-  // ap_uint<512>* mem_response
-  unsigned int header_length = 128;
-  unsigned int body_pointer = 0;
-  unsigned int body_length = 256;
+  body_pointer = header_length;
+  // std::cout << "arg[" << arg << "] = " << &buffer_device << std::endl;
+  // OCL_CHECK(err, err = user_kernel.setArg(arg++, buffer_device));
   std::cout << "arg[" << arg << "] = " << header_length << std::endl;
   OCL_CHECK(err, err = user_kernel.setArg(arg++, header_length));
   std::cout << "arg[" << arg << "] = " << body_pointer << std::endl;
@@ -96,31 +141,27 @@ int main (int argc, char **argv) {
   std::cout << "arg[" << arg << "] = " << body_length << std::endl;
   OCL_CHECK(err, err = user_kernel.setArg(arg++, body_length));
 
+  // cl::Event blocking_call_event;
+  // OCL_CHECK(err,
+  //   err = q.enqueueWriteBuffer(buffer_device,          // buffer on the FPGA
+  //                               CL_TRUE,               // blocking call
+  //                               0,                     // buffer offset in bytes
+  //                               header_length,         // Size in bytes
+  //                               headers_data->data(),  // Pointer to the data to copy
+  //                               nullptr, &blocking_call_event));
+  // OCL_CHECK(err,
+  //   err = q.enqueueWriteBuffer(buffer_device,          // buffer on the FPGA
+  //                               CL_TRUE,               // blocking call
+  //                               header_length,         // buffer offset in bytes
+  //                               body_length,           // Size in bytes
+  //                               body_data->data(),     // Pointer to the data to copy
+  //                               nullptr, &blocking_call_event));  
+
   // Launch the Kernel
   std::cout << "enqueue user kernel..." << std::endl;
 
   OCL_CHECK(err, err = q.enqueueTask(user_kernel));
   OCL_CHECK(err, err = q.finish())
-  // std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-  // OCL_CHECK(err, err = q.enqueueReadBuffer(
-  //       buffer_req, // This buffers data will be read
-  //       CL_TRUE, // blocking call
-  //       0,       // offset
-  //       request_size,
-  //       request_data.data() // Data will be stored here
-  //       ));
-  // print output buffer HEX
-  std::stringstream ss;
-  ss << std::hex << std::setfill('0');
-  for (uint32_t i = 0; i < request_size; i++) {
-    if ((i % 32) == 0) {
-      ss << std::endl;
-    }
-    ss << ' ' << std::setw(2) << static_cast<unsigned>(request_data[i] & 255);
-  }
-  std::cout << ss.str();
-  std::cout << std::endl;
 
   std::cout << "finished" << std::endl;
 }
