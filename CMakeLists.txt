@@ -24,6 +24,7 @@ set(HTTP_HW_HLS_SOURCE_FILES
   "hw/hls/method_parser.cc"
   "hw/hls/req_payload_parser.cc"
   "hw/hls/request_processor.cc"
+  "hw/hls/response_aligner.cc"
   "hw/hls/response_processor.cc"
   "hw/hls/status_code_parser.cc")
 
@@ -35,6 +36,7 @@ set(HTTP_HW_HLS_SOURCE_FILES_H
   "hw/hls/method_parser.h"
   "hw/hls/req_payload_parser.h"
   "hw/hls/request_processor.h"
+  "hw/hls/response_aligner.h"
   "hw/hls/response_processor.h"
   "hw/hls/status_code_parser.h"
   "hw/hls/tcp_utils.h")

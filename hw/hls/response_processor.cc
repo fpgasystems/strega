@@ -2,6 +2,7 @@
 /// @copyright This software is copyrighted under the BSD 3-Clause License.
 
 #include "response_processor.h"
+#include "response_aligner.h"
 #include "status_code_parser.h"
 
 namespace http {
@@ -20,8 +21,8 @@ enum class fsm_state {
 void state_machine(
   hls::stream<tcp_xx_req_pkt>& tcp_tx_req,
   hls::stream<tcp_tx_rsp_pkt>& tcp_tx_rsp,
-  hls::stream<pkt512>& tcp_tx_data,
   // INTERNAL
+  hls::stream<axi_stream_ispt>& tx_aligner,
   hls::stream<HttpStatus>& resp_status_code,
   hls::stream<http_status_code_ospt>& resp_status_line,
   // APPLICATION
@@ -51,7 +52,7 @@ void state_machine(
     {
       tcp_xx_req_pkt meta;
       meta.sessionID = app_response.meta.sessionID;
-      meta.length = app_response.body_size + app_response.headers_size; // TOOD + status code + end of lines
+      meta.length = app_response.body_size + app_response.headers_size + 4; // TOOD + status code + end of lines
       tcp_tx_req.write(meta);
 
       state = fsm_state::META;
@@ -63,23 +64,6 @@ void state_machine(
       tcp_tx_rsp_pkt tx_status = tcp_tx_rsp.read();
       state = fsm_state::DATA_HTTP_STATUS;
       // TODO handle error
-      // switch (tx_status.error) {
-      //   case 0:
-      //   {
-      //     state = fsm_state::DATA;
-      //     break;
-      //   }
-      //   case 1:
-      //   {
-      //     // TODO
-      //     state - fsm_state::ERROR;
-      //     break;
-      //   }
-      //   default:
-      //   {
-      //     state = fsm_state::META;
-      //   }
-      // }
       break;
     }
 
@@ -87,11 +71,11 @@ void state_machine(
     {
       if (!resp_status_line.empty()) {
         http_status_code_ospt tmp = resp_status_line.read();
-        pkt512 raw;
+        axi_stream_ispt raw;
         raw.data = tmp.data;
         raw.keep = tmp.keep;
         raw.last = false;
-        tcp_tx_data.write(raw);
+        tx_aligner.write(raw);
 
         state = fsm_state::DATA_HEADERS;
       }
@@ -101,11 +85,11 @@ void state_machine(
     case fsm_state::DATA_HEADERS:
     {
       pkt512 in = http_response_headers.read();
-      pkt512 out;
+      axi_stream_ispt out;
       out.data = in.data;
       out.keep = in.keep;
       out.last = false;
-      tcp_tx_data.write(out);
+      tx_aligner.write(out);
 
       state = (in.last) ? fsm_state::DATA_DIVIDER : fsm_state::DATA_HEADERS;
       break;
@@ -113,13 +97,13 @@ void state_machine(
 
     case fsm_state::DATA_DIVIDER:
     {
-      pkt512 raw;
-      raw.data(7,0) = 0x0A;
-      raw.data(15,8) = 0x0A;
-      raw.keep(1, 0) = -1;
-      raw.keep(63, 2) = 0;
+      axi_stream_ispt raw;
+      raw.data.range(7,0) = 0x0A;
+      raw.data.range(15,8) = 0x0A;
+      raw.keep.range(1, 0) = -1;
+      raw.keep.range(63, 2) = 0;
       raw.last = false;
-      tcp_tx_data.write(raw);
+      tx_aligner.write(raw);
 
       state = fsm_state::DATA_BODY;
       break;
@@ -128,11 +112,11 @@ void state_machine(
     case fsm_state::DATA_BODY:
     {
       pkt512 in = http_response_body.read();
-      pkt512 out;
+      axi_stream_ispt out;
       out.data = in.data;
       out.keep = in.keep;
       out.last = false;
-      tcp_tx_data.write(out);
+      tx_aligner.write(out);
 
       state = (in.last) ? fsm_state::DATA_EOF : fsm_state::DATA_BODY;
       break;
@@ -140,13 +124,13 @@ void state_machine(
 
     case fsm_state::DATA_EOF:
     {
-      pkt512 raw;
-      raw.data(7,0) = 0x0A;
-      raw.data(15,8) = 0x0A;
-      raw.keep(1, 0) = -1;
-      raw.keep(63, 2) = 0;
+      axi_stream_ispt raw;
+      raw.data.range(7,0) = 0x0A;
+      raw.data.range(15,8) = 0x0A;
+      raw.keep.range(1, 0) = -1;
+      raw.keep.range(63, 2) = 0;
       raw.last = true;
-      tcp_tx_data.write(raw);
+      tx_aligner.write(raw);
 
       state = fsm_state::IDLE;
       break;
@@ -167,21 +151,31 @@ void response_processor (
 ) {
 #pragma HLS DATAFLOW
 
+  static hls::stream<axi_stream_ispt> tx_aligner("tx_aligner");
   static hls::stream<HttpStatus> resp_status_code("resp_status_code");
   static hls::stream<http_status_code_ospt> resp_status_line("resp_status_line");
 
+  #pragma HLS stream variable=tx_aligner type=fifo depth=16
   #pragma HLS stream variable=resp_status_code type=fifo depth=16
   #pragma HLS stream variable=resp_status_line type=fifo depth=16
+  #pragma HLS aggregate variable=tx_aligner compact=bit
+  #pragma HLS aggregate variable=resp_status_code compact=bit
+  #pragma HLS aggregate variable=resp_status_line compact=bit
 
   state_machine(
     tcp_tx_req,
     tcp_tx_rsp,
-    tcp_tx_data,
+    tx_aligner,
     resp_status_code,
     resp_status_line,
     http_response,
     http_response_headers,
     http_response_body);
+
+  response_aligner(
+    tx_aligner,
+    tcp_tx_data
+  );
 
   status_code_parser(
     resp_status_code,

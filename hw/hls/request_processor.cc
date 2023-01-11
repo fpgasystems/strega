@@ -45,8 +45,8 @@ void state_machine(
   #pragma HLS INLINE off
 
   static fsm_state state = fsm_state::IDLE;
-  #pragma HLS reset variable=state
   static ap_uint<HTTP_SESSION_WIDTH> sessionID;
+  #pragma HLS reset variable=state
   #pragma HLS reset variable=sessionID off
 
   switch (state) {
@@ -128,6 +128,9 @@ void request_processor (
   #pragma HLS stream variable=headline_in type=fifo depth=16
   #pragma HLS stream variable=headline_out type=fifo depth=1
   #pragma HLS stream variable=payload_in type=fifo depth=16
+  #pragma HLS aggregate variable=headline_in compact=bit
+  #pragma HLS aggregate variable=headline_out compact=bit
+  #pragma HLS aggregate variable=payload_in compact=bit
 
   state_machine(
     tcp_notification,
