@@ -1,73 +1,3 @@
-/*#include <bitset>
-#include <vector>
-#include <chrono>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sstream>
-#include <iomanip>
-
-#include <xrt/xrt_device.h>
-#include <experimental/xrt_xclbin.h>
-#include <xrt/xrt_kernel.h>
-#include <experimental/xrt_ip.h>
-
-#define NETWORK_DATA_SIZE 62500
-
-#define ARGV_XCLBIN 1
-
-int main (int argc, char **argv) {
-  if (argc < ARGV_XCLBIN) {
-    std::cout << "Usage: " << argv[0] << " <.xclbin>" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  std::string binaryFile = argv[ARGV_XCLBIN];
-  uint32_t board_ip = strtol(getenv("FPGA_0_IP_ADDRESS_HEX"), NULL, 16);
-  uint32_t board_num = 1;
-
-  std::cout << "FPGA_0_IP_ADDRESS = " << getenv("FPGA_0_IP_ADDRESS") << std::endl;
-  std::cout << "FPGA_0_IP_ADDRESS_HEX = " << getenv("FPGA_0_IP_ADDRESS_HEX") << std::endl;
-
-  ///////////////////////////////////////////////////////////////////////////////////////
-  // OPENCL
-  ///////////////////////////////////////////////////////////////////////////////////////
-
-  auto device = xrt::device(0);
-  auto xclbin_uuid = device.load_xclbin(binaryFile);
-  std::cout << "device name:     " << device.get_info<xrt::info::device::name>() << std::endl;
-
-  ///////////////////////////////////////////////////////////////////////////////////////
-  // NETWORK KERNEL
-  ///////////////////////////////////////////////////////////////////////////////////////
-
-  auto network_kernel = xrt::kernel(device, xclbin_uuid, "network_krnl");
-
-  auto network_mem_size_bytes = sizeof(int) * NETWORK_DATA_SIZE;
-  auto bank_grp_arg0 = network_kernel.group_id(3);
-  auto bank_grp_arg1 = network_kernel.group_id(4);
-  auto input_buffer = xrt::bo(device, network_mem_size_bytes, bank_grp_arg0);
-  auto output_buffer = xrt::bo(device, network_mem_size_bytes, bank_grp_arg1);
-
-  auto run = network_kernel(board_ip, board_num, board_ip, bank_grp_arg0, bank_grp_arg1);
-  run.wait();
-
-  ///////////////////////////////////////////////////////////////////////////////////////
-  // USER KERNEL
-  ///////////////////////////////////////////////////////////////////////////////////////
-
-  std::cout << "enqueue user kernel..." << std::endl;
-  unsigned int header_length = 128;
-  unsigned int body_pointer = 0;
-  unsigned int body_length = 256;
-  auto app_kernel = xrt::kernel(device, xclbin_uuid, "static_pages");
-
-  auto run2 = network_kernel(header_length, body_pointer, body_length);
-  run2.wait();
-
-  std::cout << "finished" << std::endl;
-}*/
-
 #include <xcl2.hpp>
 #include <bitset>
 #include <vector>
@@ -81,16 +11,17 @@ int main (int argc, char **argv) {
 #define NETWORK_DATA_SIZE 62500
 
 #define ARGV_XCLBIN 1
+#define ARGV_HEADERS 2
+#define ARGV_BODY 3
 
 int main (int argc, char **argv) {
-  if (argc < ARGV_XCLBIN) {
-    std::cout << "Usage: " << argv[0] << " <.xclbin> <response.txt>" << std::endl;
+  if (argc < ARGV_BODY) {
+    std::cout << "Usage: " << argv[0] << " <.xclbin> <headers.txt> <body.txt>" << std::endl;
     exit(EXIT_FAILURE);
   }
 
   std::string binaryFile = argv[ARGV_XCLBIN];
   uint32_t board_ip = strtol(getenv("FPGA_0_IP_ADDRESS_HEX"), NULL, 16);
-  uint32_t board_num = 1;
 
   std::cout << "FPGA_0_IP_ADDRESS = " << getenv("FPGA_0_IP_ADDRESS") << std::endl;
   std::cout << "FPGA_0_IP_ADDRESS_HEX = " << getenv("FPGA_0_IP_ADDRESS_HEX") << std::endl;
@@ -135,6 +66,7 @@ int main (int argc, char **argv) {
   cl::Kernel network_kernel;
   OCL_CHECK(err, network_kernel = cl::Kernel(program, "network_krnl", &err));
 
+  uint32_t board_num = 1;
   auto network_mem_size_bytes = sizeof(int) * NETWORK_DATA_SIZE;
   std::vector<int, aligned_allocator<int>> network_ptr0(NETWORK_DATA_SIZE);
   std::vector<int, aligned_allocator<int>> network_ptr1(NETWORK_DATA_SIZE);
@@ -166,10 +98,7 @@ int main (int argc, char **argv) {
   // HTTP KERNEL
   ///////////////////////////////////////////////////////////////////////////////////////
 
-  cl::Kernel http_kernel;
-  OCL_CHECK(err, http_kernel = cl::Kernel(program, "http", &err));
-
-  //OCL_CHECK(err, err = q.enqueueTask(http_kernel)); TODO MUST BE ASYNC
+  // nothing to do, autorun kernel
 
   ///////////////////////////////////////////////////////////////////////////////////////
   // USER KERNEL
@@ -178,17 +107,87 @@ int main (int argc, char **argv) {
   cl::Kernel user_kernel;
   OCL_CHECK(err, user_kernel = cl::Kernel(program, "static_pages", &err));
 
+  uint32_t header_length = 128;
+  uint32_t body_pointer = 0;
+  uint32_t body_length = 256;
+
+  // Headers
+  std::string headers_path = argv[ARGV_HEADERS];
+  std::vector<char, aligned_allocator<char>>* headers_data;
+  std::ifstream file(headers_path, std::ios::in | std::ios::binary);
+  if (file.is_open()) {
+    file.seekg(0, std::ios::end);
+    header_length = file.tellg();
+    std::cout << "headers size: " << header_length << " bytes" << std::endl;
+
+    char* file_buffer = new char[header_length];
+    file.seekg(0, std::ios::beg);
+    file.read(file_buffer, header_length);
+
+    headers_data = new std::vector<char, aligned_allocator<char>>(header_length);
+    memcpy(headers_data->data(), file_buffer, header_length);
+    file.close();
+    delete [] file_buffer;
+  } else {
+    std::cerr << "[!] Failed to open HEADERS.txt file" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  // Body
+  std::string body_path = argv[ARGV_BODY];
+  std::vector<char, aligned_allocator<char>>* body_data;
+  file = std::ifstream(body_path, std::ios::in | std::ios::binary);
+  if (file.is_open()) {
+    file.seekg(0, std::ios::end);
+    body_length = file.tellg();
+    std::cout << "body size: " << body_length << " bytes" << std::endl;
+
+    char* file_buffer = new char[body_length];
+    file.seekg(0, std::ios::beg);
+    file.read(file_buffer, body_length);
+
+    body_data = new std::vector<char, aligned_allocator<char>>(body_length);
+    memcpy(body_data->data(), file_buffer, body_length);
+    file.close();
+    delete [] file_buffer;
+  } else {
+    std::cerr << "[!] Failed to open BODY.txt file" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  std::vector<char, aligned_allocator<char>> buffff(header_length + body_length, 0);
+  OCL_CHECK(err,
+      cl::Buffer buffer_device(context,
+        CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+        header_length + body_length,
+        buffff.data(),
+        &err));
+
   uint32_t arg = 6;
-  // ap_uint<512>* mem_response
-  unsigned int header_length = 128;
-  unsigned int body_pointer = 0;
-  unsigned int body_length = 256;
+  std::cout << "arg[" << arg << "] = " << &buffer_device << std::endl;
+  OCL_CHECK(err, err = user_kernel.setArg(arg++, buffer_device));
   std::cout << "arg[" << arg << "] = " << header_length << std::endl;
   OCL_CHECK(err, err = user_kernel.setArg(arg++, header_length));
   std::cout << "arg[" << arg << "] = " << body_pointer << std::endl;
   OCL_CHECK(err, err = user_kernel.setArg(arg++, body_pointer));
   std::cout << "arg[" << arg << "] = " << body_length << std::endl;
   OCL_CHECK(err, err = user_kernel.setArg(arg++, body_length));
+
+  cl::Event blocking_call_event;
+  OCL_CHECK(err,
+    err = q.enqueueWriteBuffer(buffer_device,          // buffer on the FPGA
+                                CL_TRUE,               // blocking call
+                                0,                     // buffer offset in bytes
+                                header_length,         // Size in bytes
+                                headers_data->data(),  // Pointer to the data to copy
+                                nullptr, &blocking_call_event));
+  OCL_CHECK(err,
+    err = q.enqueueWriteBuffer(buffer_device,          // buffer on the FPGA
+                                CL_TRUE,               // blocking call
+                                header_length,         // buffer offset in bytes
+                                body_length,           // Size in bytes
+                                body_data->data(),     // Pointer to the data to copy
+                                nullptr, &blocking_call_event));  
 
   // Launch the Kernel
   std::cout << "enqueue user kernel..." << std::endl;

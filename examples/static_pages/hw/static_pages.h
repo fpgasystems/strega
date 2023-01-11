@@ -15,7 +15,7 @@ void static_pages (
   hls::stream<http::pkt512>& http_response_headers,
   hls::stream<http::pkt512>& http_response_body,
   // Host
-  // ap_uint<512>* mem_response,
+  ap_uint<512>* mem_response,
   unsigned int header_length,
   unsigned int body_pointer,
   unsigned int body_length

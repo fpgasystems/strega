@@ -44,7 +44,7 @@ void process_response(
   hls::stream<http::pkt512>& http_response_headers,
   hls::stream<http::pkt512>& http_response_body,
   hls::stream<internal_pkt>& strm_internal,
-  //ap_uint<512>* mem_response,
+  ap_uint<512>* mem_response,
   unsigned int header_length,
   unsigned int body_pointer,
   unsigned int body_length
@@ -59,8 +59,8 @@ void process_response(
       http::http_response_spt response;
       response.meta = internal.meta;
       response.status_code = http::HttpStatus::OK_200;
-      response.body_size = 0;
-      response.headers_size = 0;
+      response.body_size = body_length;
+      response.headers_size = header_length;
       http_response.write(response);
 
       http::pkt512 tmp;
@@ -69,24 +69,20 @@ void process_response(
 
       do {
         bytes_sent += (512/8);
-        //tmp.data = mem_response[mem_pointer];
-        tmp.data = -1;
+        tmp.data = mem_response[mem_pointer++];
         tmp.last = (bytes_sent >= header_length);
         tmp.keep = -1;
         http_response_headers.write(tmp);
-        mem_pointer++;
       } while (bytes_sent < header_length);
 
       mem_pointer = body_pointer;
       bytes_sent = 0;
       do {
         bytes_sent += (512/8);
-        //tmp.data = mem_response[mem_pointer];
-        tmp.data = -1;
+        tmp.data = mem_response[mem_pointer++];
         tmp.last = (bytes_sent >= body_length);
         tmp.keep = -1;
         http_response_body.write(tmp);
-        mem_pointer++;
       } while (bytes_sent < body_length);
     }
   } while (service_running);
@@ -101,7 +97,7 @@ void static_pages (
   hls::stream<http::pkt512>& http_response_headers,
   hls::stream<http::pkt512>& http_response_body,
   // Host
-  //ap_uint<512>* mem_response,
+  ap_uint<512>* mem_response,
   unsigned int header_length,
   unsigned int body_pointer,
   unsigned int body_length
@@ -128,7 +124,7 @@ void static_pages (
     http_response_headers,
     http_response_body,
     strm_internal,
-    //mem_response,
+    mem_response,
     header_length,
     body_pointer,
     body_length

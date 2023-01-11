@@ -107,7 +107,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tmp_xclbin/http.link.xclbi
     DEPENDS kernel.${HTTP_KERNEL_NAME} kernel.cmac_krnl kernel.network_krnl kernel.static_pages
     COMMAND ${Vitis_COMPILER} ${PROGRAM_VPP_FLAGS} -l ${PROGRAM_VPP_LDFLAGS} --temp_dir ${PROGRAM_TEMP_DIR}
             -o ${PROGRAM_TEMP_DIR}/http.link.xclbin
-            kernel.http kernel.cmac_krnl kernel.network_krnl kernel.static_pages
+            ${CMAKE_BINARY_DIR}/http.xo ${CMAKE_BINARY_DIR}/cmac_krnl.xo ${CMAKE_BINARY_DIR}/network_krnl.xo ${CMAKE_BINARY_DIR}/static_pages.xo
             --advanced.param compiler.userPostDebugProfileOverlayTcl=${CMAKE_CURRENT_BINARY_DIR}/vitis-network-stack/scripts/post_sys_link.tcl
             --config ${CMAKE_CURRENT_SOURCE_DIR}/hw/vitis/connectivity.cfg
             --platform ${HTTP_PLATFORM})
