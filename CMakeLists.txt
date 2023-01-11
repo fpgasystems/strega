@@ -16,11 +16,6 @@ option(HTTP_ENABLE_DEBUGGING "Inject debugging cores to design." OFF)
 # Domain options
 set(HTTP_LISTEN_PORT "80" CACHE STRING "Listen port number for the HTTP Server.")
 
-# Infra
-set(HTTP_IP_DIR ${CMAKE_BINARY_DIR}/ips CACHE STRING "IP build directory")
-set(IPREPO_DIR ${CMAKE_BINARY_DIR}/kernels CACHE STRING "Kernel build directory")
-set(HTTP_BUILD_DIR "http_kernel_build" CACHE STRING "HTTP building directory")
-
 # Source
 set(HTTP_HW_HLS_SOURCE_FILES
   "hw/hls/headline_parser.cc"
@@ -59,7 +54,6 @@ set(HTTP_VNS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/vitis-network-stack)
 set(FDEV_NAME "u55c" CACHE STRING "FPGA Device Family")
 set(TCP_STACK_EN 1 CACHE BOOL "Enable TCP/IP stack")
 set(UDP_STACK_EN 0 CACHE BOOL "Enable UDP/IP stack")
-set(IPREPO_DIR ${HTTP_IP_DIR} CACHE STRING "IP build directory")
 
 add_subdirectory(vitis-network-stack)
 
@@ -75,8 +69,7 @@ add_vitis_ip(${HTTP_IP_NAME}
             VENDOR "ethz.systems.fpga"
             DISPLAY_NAME "FPGA HTTP Server Stack"
             DESCRIPTION "Middleware between Application HTTP Request-Response and TCP-IP stack."
-            VERSION ${PROJECT_VERSION}
-            IP_DIR ${HTTP_IP_DIR})
+            VERSION ${PROJECT_VERSION})
 
 #
 # http rtl kernel
@@ -86,7 +79,6 @@ add_vivado_kernel(${HTTP_KERNEL_NAME}
                   PACKAGE_TCL_PATH ${CMAKE_CURRENT_BINARY_DIR}/hw/vitis/package.tcl
                   FILES ${HTTP_HW_RTL_SOURCE_FILES}
                   IPS ${HTTP_IP_NAME}
-                  IP_REPO ${HTTP_IP_DIR}
                   XML_PATH hw/vitis/kernel.xml)
 
 #
@@ -94,6 +86,12 @@ add_vivado_kernel(${HTTP_KERNEL_NAME}
 #
 
 add_subdirectory(examples/static_pages)
+
+#
+# hw_emu mock
+#
+
+add_subdirectory(hw/mock)
 
 #
 # program bitstream
@@ -109,7 +107,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tmp_xclbin/http.link.xclbi
     DEPENDS kernel.${HTTP_KERNEL_NAME} kernel.cmac_krnl kernel.network_krnl kernel.static_pages
     COMMAND ${Vitis_COMPILER} ${PROGRAM_VPP_FLAGS} -l ${PROGRAM_VPP_LDFLAGS} --temp_dir ${PROGRAM_TEMP_DIR}
             -o ${PROGRAM_TEMP_DIR}/http.link.xclbin
-            ${IPREPO_DIR}/http.xo ${IPREPO_DIR}/cmac_krnl.xo ${IPREPO_DIR}/network_krnl.xo ${IPREPO_DIR}/static_pages.xo
+            kernel.http kernel.cmac_krnl kernel.network_krnl kernel.static_pages
             --advanced.param compiler.userPostDebugProfileOverlayTcl=${CMAKE_CURRENT_BINARY_DIR}/vitis-network-stack/scripts/post_sys_link.tcl
             --config ${CMAKE_CURRENT_SOURCE_DIR}/hw/vitis/connectivity.cfg
             --platform ${HTTP_PLATFORM})

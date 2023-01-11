@@ -17,10 +17,12 @@ set(APP_HW_HLS_SOURCE_FILES
 set(APP_HW_HLS_SOURCE_FILES_H
   "hw/static_pages.h")
 
-add_custom_target(kernel.static_pages
-  COMMENT "Exporting kernel static_pages to .xo"
+add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/static_pages.xo
+  COMMENT "Exporting kernel .xo static_pages"
   COMMAND ${Vitis_COMPILER} -c -k static_pages
-          -o ${CMAKE_BINARY_DIR}/ips/static_pages.xo
+          -o ${CMAKE_BINARY_DIR}/static_pages.xo
           --input_files ${CMAKE_CURRENT_SOURCE_DIR}/${APP_HW_HLS_SOURCE_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/${APP_HW_HLS_SOURCE_FILES_H}
           --platform ${HTTP_PLATFORM}
   DEPENDS ${APP_HW_HLS_SOURCE_FILES} ${APP_HW_HLS_SOURCE_FILES_H})
+
+add_custom_target(kernel.static_pages DEPENDS ${CMAKE_BINARY_DIR}/static_pages.xo)
