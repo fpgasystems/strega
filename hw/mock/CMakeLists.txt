@@ -41,8 +41,8 @@ add_custom_command(OUTPUT ${MOCK_TCP_XO}
 
 set(MOCK_APP_XO ${CMAKE_BINARY_DIR}/mock/app.hw_emu.xo)
 set(MOCK_APP_SOURCES
-  "../../examples/static_pages/hw/static_pages.h"
-  "../../examples/static_pages/hw/static_pages.cc"
+  "../../examples/static_pages/static_pages.h"
+  "../../examples/static_pages/static_pages.cc"
   "../hls/http_lib.h"
   "../hls/tcp_utils.h")
 hlslib_make_paths_absolute(MOCK_APP_SOURCES ${MOCK_APP_SOURCES})

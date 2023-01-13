@@ -189,12 +189,14 @@ int main (int argc, char **argv) {
                                 body_data->data(),     // Pointer to the data to copy
                                 nullptr, &blocking_call_event));  
 
+  std::cout << "press ENTER..." << std::endl;
+  std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
   // Launch the Kernel
   std::cout << "enqueue user kernel..." << std::endl;
 
   OCL_CHECK(err, err = q.enqueueTask(user_kernel));
   OCL_CHECK(err, err = q.finish())
-  // std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
   std::cout << "finished" << std::endl;
 }

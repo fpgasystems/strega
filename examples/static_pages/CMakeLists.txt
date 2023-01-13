@@ -12,10 +12,10 @@ project(static_pages
 #
 
 set(APP_HW_HLS_SOURCE_FILES
-  "hw/static_pages.cc")
+  "static_pages.cc")
 
 set(APP_HW_HLS_SOURCE_FILES_H
-  "hw/static_pages.h")
+  "static_pages.h")
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/static_pages.xo
   COMMENT "Exporting kernel .xo static_pages"

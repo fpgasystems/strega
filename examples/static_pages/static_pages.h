@@ -3,8 +3,8 @@
 
 #pragma once
 #include <hls_stream.h>
-#include "../../../hw/hls/http_lib.h"
-#include "../../../hw/hls/tcp_utils.h"
+#include "../../hw/hls/http_lib.h"
+#include "../../hw/hls/tcp_utils.h"
 
 void static_pages (
   // HTTP
