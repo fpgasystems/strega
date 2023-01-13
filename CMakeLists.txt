@@ -107,7 +107,7 @@ set(PROGRAM_TEMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/tmp_xclbin")
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tmp_xclbin/http.link.xclbin
     COMMENT "Linking bitstream .xclbin"
-    DEPENDS ${CMAKE_BINARY_DIR}/http.xo ${CMAKE_BINARY_DIR}/cmac_krnl.xo ${CMAKE_BINARY_DIR}/network_krnl.xo ${CMAKE_BINARY_DIR}/static_pages.xo
+    DEPENDS kernel.http kernel.cmac_krnl kernel.network_krnl kernel.static_pages
     COMMAND ${Vitis_COMPILER} ${PROGRAM_VPP_FLAGS} -l ${PROGRAM_VPP_LDFLAGS} --temp_dir ${PROGRAM_TEMP_DIR}
             -o ${PROGRAM_TEMP_DIR}/http.link.xclbin
             ${CMAKE_BINARY_DIR}/http.xo ${CMAKE_BINARY_DIR}/cmac_krnl.xo ${CMAKE_BINARY_DIR}/network_krnl.xo ${CMAKE_BINARY_DIR}/static_pages.xo

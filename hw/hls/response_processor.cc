@@ -9,13 +9,15 @@ namespace http {
 
 enum class fsm_state {
   IDLE,
-  APPLICATION_RESPONSE,
-  META,
+  TCP_REQ,
+  TCP_RSP,
   DATA_HTTP_STATUS,
   DATA_HEADERS,
-  DATA_DIVIDER,
+  DATA_CRLF,
   DATA_BODY,
-  DATA_EOF
+  FLUSH_HEADLINE,
+  FLUSH_HEADERS,
+  FLUSH_BODY
 };
 
 void state_machine(
@@ -33,8 +35,8 @@ void state_machine(
   #pragma HLS INLINE off
 
   static fsm_state state = fsm_state::IDLE;
-  #pragma HLS reset variable=state
   static http_response_spt app_response;
+  #pragma HLS reset variable=state
   #pragma HLS reset variable=app_response off
 
   switch (state) {
@@ -43,42 +45,51 @@ void state_machine(
       if (!http_response.empty()) {
         app_response = http_response.read();
         resp_status_code.write(app_response.status_code);
-        state = fsm_state::APPLICATION_RESPONSE;
+        state = fsm_state::TCP_REQ;
       }
       break;
     }
 
-    case fsm_state::APPLICATION_RESPONSE:
+    case fsm_state::TCP_REQ:
     {
-      tcp_xx_req_pkt meta;
-      meta.sessionID = app_response.meta.sessionID;
-      meta.length = app_response.body_size + app_response.headers_size + 4; // TOOD + status code + end of lines
-      tcp_tx_req.write(meta);
+      tcp_xx_req_pkt tx_req;
+      tx_req.sessionID = app_response.meta.sessionID;
+      tx_req.length = app_response.body_size + app_response.headers_size + 2; // TOOD status code line length
+      tcp_tx_req.write(tx_req);
 
-      state = fsm_state::META;
+      state = fsm_state::TCP_RSP;
       break;
     }
 
-    case fsm_state::META:
+    case fsm_state::TCP_RSP:
     {
-      tcp_tx_rsp_pkt tx_status = tcp_tx_rsp.read();
-      state = fsm_state::DATA_HTTP_STATUS;
-      // TODO handle error
+      tcp_tx_rsp_pkt tx_rsp = tcp_tx_rsp.read();
+
+      switch (tx_rsp.error) {
+        case 0: // no error
+          state = fsm_state::DATA_HTTP_STATUS;
+          break;
+        case 1: // connection closed
+          state = fsm_state::FLUSH_HEADLINE;
+          break;
+        default: // retry
+          state = fsm_state::TCP_REQ;
+          break;
+      }
+
       break;
     }
 
     case fsm_state::DATA_HTTP_STATUS:
     {
-      if (!resp_status_line.empty()) {
-        http_status_code_ospt tmp = resp_status_line.read();
-        axi_stream_ispt raw;
-        raw.data = tmp.data;
-        raw.keep = tmp.keep;
-        raw.last = false;
-        tx_aligner.write(raw);
+      http_status_code_ospt tmp = resp_status_line.read();
+      axi_stream_ispt raw;
+      raw.data = tmp.data;
+      raw.keep = tmp.keep;
+      raw.last = false;
+      // tx_aligner.write(raw); // TODO add it's length to tx_req.length
 
-        state = fsm_state::DATA_HEADERS;
-      }
+      state = fsm_state::DATA_HEADERS;
       break;
     }
 
@@ -91,15 +102,15 @@ void state_machine(
       out.last = false;
       tx_aligner.write(out);
 
-      state = (in.last) ? fsm_state::DATA_DIVIDER : fsm_state::DATA_HEADERS;
+      state = (in.last) ? fsm_state::DATA_CRLF : fsm_state::DATA_HEADERS;
       break;
     }
 
-    case fsm_state::DATA_DIVIDER:
+    case fsm_state::DATA_CRLF:
     {
       axi_stream_ispt raw;
-      raw.data.range(7,0) = 0x0A;
-      raw.data.range(15,8) = 0x0A;
+      raw.data.range(7,0) = 0x0D; // CR
+      raw.data.range(15,8) = 0x0A; // LF
       raw.keep.range(1, 0) = -1;
       raw.keep.range(63, 2) = 0;
       raw.last = false;
@@ -115,24 +126,34 @@ void state_machine(
       axi_stream_ispt out;
       out.data = in.data;
       out.keep = in.keep;
-      out.last = false;
+      out.last = in.last;
       tx_aligner.write(out);
 
-      state = (in.last) ? fsm_state::DATA_EOF : fsm_state::DATA_BODY;
+      state = (in.last) ? fsm_state::IDLE : fsm_state::DATA_BODY;
       break;
     }
 
-    case fsm_state::DATA_EOF:
+    case fsm_state::FLUSH_HEADLINE:
     {
-      axi_stream_ispt raw;
-      raw.data.range(7,0) = 0x0A;
-      raw.data.range(15,8) = 0x0A;
-      raw.keep.range(1, 0) = -1;
-      raw.keep.range(63, 2) = 0;
-      raw.last = true;
-      tx_aligner.write(raw);
+      resp_status_line.read();
 
-      state = fsm_state::IDLE;
+      state = fsm_state::FLUSH_HEADERS;
+      break;
+    }
+
+    case fsm_state::FLUSH_HEADERS:
+    {
+      pkt512 in = http_response_headers.read();
+
+      state = (in.last) ? fsm_state::FLUSH_BODY : fsm_state::FLUSH_HEADERS;
+      break;
+    }
+
+    case fsm_state::FLUSH_BODY:
+    {
+      pkt512 in = http_response_body.read();
+
+      state = (in.last) ? fsm_state::IDLE : fsm_state::FLUSH_BODY;
       break;
     }
   }
