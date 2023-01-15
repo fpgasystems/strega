@@ -39,17 +39,17 @@ add_custom_command(OUTPUT ${MOCK_TCP_XO}
 # app kernel
 #
 
+set(MOCK_APP_NAME "health_check" CACHE STRING "App used for mock hw_emu")
 set(MOCK_APP_XO ${CMAKE_BINARY_DIR}/mock/app.hw_emu.xo)
 set(MOCK_APP_SOURCES
-  "../../examples/static_pages/static_pages.h"
-  "../../examples/static_pages/static_pages.cc"
+  "../../examples/${MOCK_APP_NAME}/kernel.cc"
   "../hls/http_lib.h"
   "../hls/tcp_utils.h")
 hlslib_make_paths_absolute(MOCK_APP_SOURCES ${MOCK_APP_SOURCES})
 add_custom_command(OUTPUT ${MOCK_APP_XO}
   COMMENT "Compiling mock kernel app.hw_emu.xo"
   DEPENDS ${MOCK_APP_SOURCES}
-	COMMAND ${Vitis_COMPILER} --platform ${HTTP_PLATFORM} -t hw_emu -g -c -o ${MOCK_APP_XO} -k static_pages --input_files ${MOCK_APP_SOURCES})
+	COMMAND ${Vitis_COMPILER} --platform ${HTTP_PLATFORM} -t hw_emu -g -c -o ${MOCK_APP_XO} -k ${MOCK_APP_NAME} --input_files ${MOCK_APP_SOURCES})
 
 #
 # xclbin link

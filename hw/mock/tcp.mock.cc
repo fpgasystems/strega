@@ -34,7 +34,7 @@ enum class fsm_state_tx {
   CONSUME_DATA
 };
 
-const char MOCK_HEADLINE[] = "DELETE / HTTP/1.1\n";
+const char MOCK_HEADLINE[] = "GET / HTTP/1.1\n";
 const unsigned int MOCK_HEADLINE_SIZE = 18;
 
 void rx_mock (
