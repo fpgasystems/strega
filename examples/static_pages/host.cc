@@ -108,7 +108,6 @@ int main (int argc, char **argv) {
   OCL_CHECK(err, user_kernel = cl::Kernel(program, "static_pages", &err));
 
   uint32_t header_length = 128;
-  uint32_t body_pointer = 0;
   uint32_t body_length = 256;
 
   // Headers
@@ -168,8 +167,6 @@ int main (int argc, char **argv) {
   OCL_CHECK(err, err = user_kernel.setArg(arg++, buffer_device));
   std::cout << "arg[" << arg << "] = " << header_length << std::endl;
   OCL_CHECK(err, err = user_kernel.setArg(arg++, header_length));
-  std::cout << "arg[" << arg << "] = " << body_pointer << std::endl;
-  OCL_CHECK(err, err = user_kernel.setArg(arg++, body_pointer));
   std::cout << "arg[" << arg << "] = " << body_length << std::endl;
   OCL_CHECK(err, err = user_kernel.setArg(arg++, body_length));
 
