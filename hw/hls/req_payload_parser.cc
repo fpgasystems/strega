@@ -36,9 +36,11 @@ void req_payload_parser(
     {
       // TODO
       // if detected end of header, switch to body
+      bool currLast = line.last;
+      line.last = true;
       headers.write(line.serialise());
 
-      state = (line.last) ? fsm_state::HEADER_READ : fsm_state::BODY_READ;
+      state = (currLast) ? fsm_state::HEADER_READ : fsm_state::BODY_READ;
       break;
     }
 
