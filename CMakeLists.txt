@@ -84,11 +84,17 @@ add_vivado_kernel(${HTTP_KERNEL_NAME}
                   IPS ${HTTP_IP_NAME}
                   XML_PATH hw/vitis/kernel.xml)
 
+# #
+# # static-pages application
+# #
+
+# add_subdirectory(examples/static_pages)
+
 #
-# static-pages application
+# health-check application
 #
 
-add_subdirectory(examples/static_pages)
+add_subdirectory(examples/health_check)
 
 #
 # hw_emu mock
@@ -107,10 +113,10 @@ set(PROGRAM_TEMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/tmp_xclbin")
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tmp_xclbin/http.link.xclbin
     COMMENT "Linking bitstream .xclbin"
-    DEPENDS kernel.http kernel.cmac_krnl kernel.network_krnl kernel.static_pages
+    DEPENDS kernel.http kernel.cmac_krnl kernel.network_krnl kernel.health_check
     COMMAND ${Vitis_COMPILER} ${PROGRAM_VPP_FLAGS} -l ${PROGRAM_VPP_LDFLAGS} --temp_dir ${PROGRAM_TEMP_DIR}
             -o ${PROGRAM_TEMP_DIR}/http.link.xclbin
-            ${CMAKE_BINARY_DIR}/http.xo ${CMAKE_BINARY_DIR}/cmac_krnl.xo ${CMAKE_BINARY_DIR}/network_krnl.xo ${CMAKE_BINARY_DIR}/static_pages.xo
+            ${CMAKE_BINARY_DIR}/http.xo ${CMAKE_BINARY_DIR}/cmac_krnl.xo ${CMAKE_BINARY_DIR}/network_krnl.xo ${CMAKE_BINARY_DIR}/health_check.xo
             --advanced.param compiler.userPostDebugProfileOverlayTcl=${CMAKE_CURRENT_BINARY_DIR}/vitis-network-stack/scripts/post_sys_link.tcl
             --config ${CMAKE_CURRENT_SOURCE_DIR}/hw/vitis/connectivity.cfg --vivado.synth.jobs 20 --vivado.impl.jobs 20
             --platform ${HTTP_PLATFORM})
