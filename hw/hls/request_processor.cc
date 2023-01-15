@@ -46,6 +46,8 @@ void state_machine(
 
   static fsm_state state = fsm_state::IDLE;
   static ap_uint<HTTP_SESSION_WIDTH> sessionID;
+  static bool hasHeaders;
+  static bool hasBody;
   #pragma HLS reset variable=state
   #pragma HLS reset variable=sessionID off
 
@@ -66,6 +68,8 @@ void state_machine(
         rx_req.length = notif.length;
 
         sessionID = notif.sessionID;
+        hasHeaders = notif.length >= 2*(512/8);
+        hasBody = notif.length >= 3*(512/8);
 
         tcp_rx_req.write(rx_req);
 
@@ -85,7 +89,14 @@ void state_machine(
 
     case fsm_state::DATA_HEADLINE:
     {
-      pkt512 raw = tcp_rx_data.read();      
+      pkt512 raw;
+      if (hasHeaders) {
+        raw = tcp_rx_data.read();
+      } else {
+        raw.keep = 0;
+        raw.last = 1;
+      }
+
       http_headline_ispt pkt;
       pkt.line = raw.data;
       pkt.sessionID = sessionID;
@@ -97,8 +108,16 @@ void state_machine(
 
     case fsm_state::DATA_PAYLOAD:
     {
-      pkt512 raw = tcp_rx_data.read();
+      pkt512 raw;
+      if (hasBody) {
+        raw = tcp_rx_data.read();
+      } else {
+        raw.keep = 0;
+        raw.last = 1;
+      }
+
       payload_in.write(raw);
+      
       if (raw.last) {
         state = fsm_state::IDLE;
       }
