@@ -21,11 +21,15 @@ void headline_parser (
   static ap_uint<512> line;
   static HttpMethod method;
   static ap_uint<HTTP_SESSION_WIDTH> sessionID;
+  static bool hasHeaders;
+  static bool hasBody;
 
   #pragma HLS reset variable=state
   #pragma HLS reset variable=line off
   #pragma HLS reset variable=method off
   #pragma HLS reset variable=sessionID off
+  #pragma HLS reset variable=hasHeaders off
+  #pragma HLS reset variable=hasBody off
   
   // static ap_uint<512> endpoint;
   // #pragma HLS reset variable=endpoint off
@@ -35,8 +39,12 @@ void headline_parser (
     {
       if (!input.empty()) {
         auto raw = input.read();
-        sessionID = raw.sessionID;
+
         line = raw.line;
+        sessionID = raw.sessionID;
+        hasHeaders = raw.hasHeaders;
+        hasBody = raw.hasBody;
+
         state = fsm_state::PARSE_METHOD;
       }
       break;
@@ -64,8 +72,11 @@ void headline_parser (
       http_headline_ospt result;
       result.method = method;
       result.sessionID = sessionID;
+      result.hasHeaders = hasHeaders;
+      result.hasBody = hasBody;
       // result.endpoint = endpoint;
       output.write(result);
+
       state = fsm_state::INPUT_READ;
       break;
     }

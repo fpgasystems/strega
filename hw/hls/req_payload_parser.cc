@@ -31,30 +31,29 @@ void req_payload_parser(
       }
       break;
     }
+
     case fsm_state::HEADER_WRITE:
     {
       // TODO
       // if detected end of header, switch to body
-      line.last = true;
       headers.write(line.serialise());
-      state = fsm_state::BODY_READ;
+
+      state = (line.last) ? fsm_state::HEADER_READ : fsm_state::BODY_READ;
       break;
     }
+
     case fsm_state::BODY_READ:
     {
       line = input.read();
       state = fsm_state::BODY_WRITE;
       break;
     }
+
     case fsm_state::BODY_WRITE:
     {
       body.write(line.serialise());
 
-      if (line.last) {
-        state = fsm_state::HEADER_READ;
-      } else {
-        state = fsm_state::BODY_READ;
-      }
+      state = (line.last) ? fsm_state::HEADER_READ : fsm_state::BODY_READ;
     }
   }
 }

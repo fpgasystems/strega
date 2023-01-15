@@ -26,18 +26,23 @@ void consume_request(
   hls::stream<http::pkt512>& http_request_headers,
   hls::stream<http::pkt512>& http_request_body
 ) {
-  #pragma HLS PIPELINE II=1
+  #pragma HLS DATAFLOW
 
-  bool last;
-  do {
-    http::pkt512 tmp = http_request_headers.read();
-    last = tmp.last;
-  } while (!last);
+  headers: {
+    bool lastH;
+    do {
+      http::pkt512 tmp = http_request_headers.read();
+      lastH = tmp.last;
+    } while (!lastH);
+  }
 
-  do {
-    http::pkt512 tmp = http_request_body.read();
-    last = tmp.last;
-  } while (!last);
+  body: {
+    bool lastB;
+    do {
+      http::pkt512 tmp = http_request_body.read();
+      lastB = tmp.last;
+    } while (!lastB);
+  }
 }
 
 void produce_response(

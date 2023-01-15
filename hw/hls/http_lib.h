@@ -87,11 +87,15 @@ struct http_meta
 struct http_headline_ispt {
   ap_uint<HTTP_DATA_WIDTH> line;
   ap_uint<HTTP_SESSION_WIDTH> sessionID;
+  bool hasHeaders;
+  bool hasBody;
 };
 
 struct http_headline_ospt {
   HttpMethod method;
   ap_uint<HTTP_SESSION_WIDTH> sessionID;
+  bool hasHeaders;
+  bool hasBody;
   // ap_uint<HTTP_DATA_WIDTH> endpoint;
 };
 
@@ -108,6 +112,8 @@ struct http_request_spt
 {
   http_meta meta;
   HttpMethod method;
+  bool hasHeaders;
+  bool hasBody;
   // ap_uint<HTTP_DATA_WIDTH> endpoint;
   http_request_spt() {}
 };

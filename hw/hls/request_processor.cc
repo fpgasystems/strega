@@ -28,6 +28,8 @@ void request_issuer(
     request.meta.method = headline.method;
     request.meta.sessionID = headline.sessionID;
     request.method = headline.method;
+    request.hasHeaders = headline.hasHeaders;
+    request.hasBody = headline.hasBody;
     // request.endpoint = headline.endpoint;
 
     http_request.write(request);
@@ -68,8 +70,8 @@ void state_machine(
         rx_req.length = notif.length;
 
         sessionID = notif.sessionID;
-        hasHeaders = notif.length >= 2*(512/8);
-        hasBody = notif.length >= 3*(512/8);
+        hasHeaders = (notif.length >= 2*(512/8));
+        hasBody = (notif.length >= 3*(512/8));
 
         tcp_rx_req.write(rx_req);
 
@@ -90,37 +92,28 @@ void state_machine(
     case fsm_state::DATA_HEADLINE:
     {
       pkt512 raw;
-      if (hasHeaders) {
-        raw = tcp_rx_data.read();
-      } else {
-        raw.keep = 0;
-        raw.last = 1;
-      }
+      raw = tcp_rx_data.read();
 
       http_headline_ispt pkt;
       pkt.line = raw.data;
       pkt.sessionID = sessionID;
+      pkt.hasHeaders = hasHeaders;
+      pkt.hasBody = hasBody;
       headline.write(pkt);
-      state = fsm_state::DATA_PAYLOAD;
-      
+
+      // equals to (hasHeaders || hasBody)
+      state = (raw.last) ? fsm_state::IDLE : fsm_state::DATA_PAYLOAD;
       break;
     }
 
     case fsm_state::DATA_PAYLOAD:
     {
       pkt512 raw;
-      if (hasBody) {
-        raw = tcp_rx_data.read();
-      } else {
-        raw.keep = 0;
-        raw.last = 1;
-      }
+      raw = tcp_rx_data.read();
 
       payload_in.write(raw);
       
-      if (raw.last) {
-        state = fsm_state::IDLE;
-      }
+      state = (raw.last) ? fsm_state::IDLE : fsm_state::DATA_PAYLOAD;
       break;
     }
   }
