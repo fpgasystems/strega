@@ -27,7 +27,7 @@ LDFLAGS += -L$(XILINX_XRT)/lib -pthread -lxrt_coreutil
 PLATFORM_BLOCKLIST += nodma
 ############################## Setting up Host Variables ##############################
 # Include Required Host Source Files
-HOST_SRCS += examples/static_pages/host.cc
+HOST_SRCS += examples/health_check/host.cc
 # Host compiler global settings
 CXXFLAGS += -fmessage-length=0
 LDFLAGS += -lrt -lstdc++

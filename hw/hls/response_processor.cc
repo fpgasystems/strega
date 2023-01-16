@@ -109,8 +109,8 @@ void state_machine(
     case fsm_state::DATA_CRLF:
     {
       axi_stream_ispt raw;
-      raw.data.range(7,0) = 0x0D; // CR
-      raw.data.range(15,8) = 0x0A; // LF
+      raw.data.range(7,0) = 0x0A; // LF
+      raw.data.range(15,8) = 0x0D; // CR
       raw.keep.range(1, 0) = -1;
       raw.keep.range(63, 2) = 0;
       raw.last = false;
