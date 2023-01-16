@@ -317,15 +317,15 @@ enum class fsm_state {
   RESIDUE
 };
 
-axi_stream_ispt alignWords(ap_uint<6> offset, axi_stream_ispt prevWord, axi_stream_ispt currWord)
+axi_stream_ispt alignWords(ap_uint<6> prevLength, axi_stream_ispt prevWord, axi_stream_ispt currWord)
 {
   const unsigned int WIDTH = 512;
   axi_stream_ispt alignedWord;
 
-  alignedWord.data(WIDTH - 1, offset*8) = currWord.data(WIDTH - 1, offset*8);
-  alignedWord.keep(WIDTH/8 - 1, offset) = currWord.keep(WIDTH/8 - 1, offset);
-  alignedWord.data(offset*8 - 1, 0) = prevWord.data(offset*8 - 1, 0);
-  alignedWord.keep(offset - 1, 0)  = prevWord.keep(offset - 1, 0);
+  alignedWord.data(WIDTH - 1, prevLength*8) = currWord.data(WIDTH - prevLength*8 - 1, 0);
+  alignedWord.keep(WIDTH/8 - 1, prevLength) = currWord.keep(WIDTH/8 - prevLength - 1, 0);
+  alignedWord.data(prevLength*8 - 1, 0) = prevWord.data(prevLength*8 - 1, 0);
+  alignedWord.keep(prevLength - 1, 0)  = prevWord.keep(prevLength - 1, 0);
 
   return alignedWord;
 }
