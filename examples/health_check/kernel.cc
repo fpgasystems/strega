@@ -83,7 +83,7 @@ void produce_response(
   tmpB.data(319, 256) = 0x3a2234365f78325f;
   tmpB.data(383, 320) = 0x22202c6575727420;
   tmpB.data(447, 384) = 0x31203a2265726f6d;
-  tmpB.data(511, 448) = 0x7d00000000000000;
+  tmpB.data(511, 448) = 0x000000000000007d;
   tmpB.keep(56,  0) = -1;
   tmpB.keep(63, 57) = 0;
   tmpB.last = 1;
