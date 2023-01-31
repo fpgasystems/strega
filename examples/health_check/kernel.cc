@@ -17,8 +17,8 @@ void process_notify(
   http::http_response_spt response;
   response.meta = request.meta;
   response.status_code = http::HttpStatus::OK_200;
-  response.headers_size = 69;
-  response.body_size = 57;
+  response.headers_size = 93;
+  response.body_size = 16;
   http_response.write(response);
 }
 
@@ -57,6 +57,7 @@ void produce_response(
   // HTTP/1.1 200 OK
   // Content-Type: application/json
   // Content-Length: 16
+  // Connection: keep-alive
   tmpH.data( 63,   0) = 0x312E312F50545448;
   tmpH.data(127,  64) = 0x0D4B4F2030303220;
   tmpH.data(191, 128) = 0x746E65746E6F430A;
@@ -69,23 +70,20 @@ void produce_response(
   tmpH.last = 0;
   http_response_headers.write(tmpH);
 
-  tmpH.data(63, 0) = 0x0000000A0d373520;
-  tmpH.keep( 4, 0) = -1;
-  tmpH.keep(63, 5) = 0;
+  tmpH.data( 63,   0) = 0x6e6f430A0d363120;
+  tmpH.data(127,  64) = 0x3a6e6f697463656e;
+  tmpH.data(191, 128) = 0x6c612d7065656b20;
+  tmpH.data(255, 192) = 0x0000000a0d657669;
+  tmpH.keep(28,  0) = -1;
+  tmpH.keep(63, 29) = 0;
   tmpH.last = 1;
   http_response_headers.write(tmpH);
 
-  // {"status": "OK", "padding_to_fit_2x_64": true, "more": 1}
-  tmpB.data( 63,   0) = 0x737574617473227b;
-  tmpB.data(127,  64) = 0x2c224b4f22203a22;
-  tmpB.data(191, 128) = 0x6e69646461702220;
-  tmpB.data(255, 192) = 0x7469665f6f745f67;
-  tmpB.data(319, 256) = 0x3a2234365f78325f;
-  tmpB.data(383, 320) = 0x22202c6575727420;
-  tmpB.data(447, 384) = 0x31203a2265726f6d;
-  tmpB.data(511, 448) = 0x000000000000007d;
-  tmpB.keep(56,  0) = -1;
-  tmpB.keep(63, 57) = 0;
+  // {"status": "OK"}
+  tmpB.data( 63,  0) = 0x737574617473227b;
+  tmpB.data(127, 64) = 0x7d224b4f22203a22;
+  tmpB.keep( 15,  0) = -1;
+  tmpB.keep( 63, 16) = 0;
   tmpB.last = 1;
 
   http_response_body.write(tmpB);
