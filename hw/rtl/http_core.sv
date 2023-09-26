@@ -160,7 +160,7 @@ wire                                             slice_http_request_headers_tval
 wire                                             slice_http_request_headers_tready;
 wire [C_HTTP_REQUEST_HEADERS_TDATA_WIDTH-1:0]    slice_http_request_headers_tdata;
 wire [C_HTTP_REQUEST_HEADERS_TDATA_WIDTH/8-1:0]  slice_http_request_headers_tkeep;
-wire [C_HTTP_REQUEST_HEADERS_TDATA_WIDTH/8-1:0]  slice_http_request_headers_strb;
+wire [C_HTTP_REQUEST_HEADERS_TDATA_WIDTH/8-1:0]  slice_http_request_headers_tstrb;
 wire                                             slice_http_request_headers_tlast;
   
 wire                                             slice_http_request_body_tvalid;
@@ -188,49 +188,9 @@ wire [C_HTTP_RESPONSE_BODY_TDATA_WIDTH/8-1:0]    slice_http_response_body_tkeep;
 wire [C_HTTP_RESPONSE_BODY_TDATA_WIDTH/8-1:0]    slice_http_response_body_tstrb;
 wire                                             slice_http_response_body_tlast;
 
-///////////////////////////////////////////////////////////////////////////////
-// Combining weirdly generated signals from HLS
-///////////////////////////////////////////////////////////////////////////////
-
 assign slice_tcp_rx_data_tstrb = {C_TCP_RX_DATA_TDATA_WIDTH/8{0'b1}};
 assign slice_http_response_headers_tstrb = {C_HTTP_RESPONSE_HEADERS_TDATA_WIDTH/8{0'b1}};
 assign slice_http_response_body_tstrb = {C_HTTP_RESPONSE_BODY_TDATA_WIDTH/8{0'b1}};
-
-wire tcp_rx_data_V_data_V_TREADY;
-wire tcp_rx_data_V_keep_V_TREADY;
-wire tcp_rx_data_V_strb_V_TREADY;
-wire tcp_rx_data_V_last_V_TREADY;
-assign slice_tcp_rx_data_tready = tcp_rx_data_V_data_V_TREADY & tcp_rx_data_V_keep_V_TREADY & tcp_rx_data_V_last_V_TREADY;
-
-wire tcp_tx_data_V_data_V_TVALID;
-wire tcp_tx_data_V_keep_V_TVALID;
-wire tcp_tx_data_V_strb_V_TVALID;
-wire tcp_tx_data_V_last_V_TVALID;
-assign slice_tcp_tx_data_tvalid = tcp_tx_data_V_data_V_TVALID & tcp_tx_data_V_keep_V_TVALID & tcp_tx_data_V_last_V_TVALID;
-
-wire http_request_headers_V_data_V_TVALID;
-wire http_request_headers_V_keep_V_TVALID;
-wire http_request_headers_V_strb_V_TVALID;
-wire http_request_headers_V_last_V_TVALID;
-assign slice_http_request_headers_tvalid = http_request_headers_V_data_V_TVALID & http_request_headers_V_keep_V_TVALID & http_request_headers_V_last_V_TVALID;
-
-wire http_request_body_V_data_V_TVALID;
-wire http_request_body_V_keep_V_TVALID;
-wire http_request_body_V_strb_V_TVALID;
-wire http_request_body_V_last_V_TVALID;
-assign slice_http_request_body_tvalid = http_request_body_V_data_V_TVALID & http_request_body_V_keep_V_TVALID & http_request_body_V_last_V_TVALID;
-
-wire http_response_headers_V_data_V_TREADY;
-wire http_response_headers_V_keep_V_TREADY;
-wire http_response_headers_V_strb_V_TREADY;
-wire http_response_headers_V_last_V_TREADY;
-assign slice_http_response_headers_tready = http_response_headers_V_data_V_TREADY & http_response_headers_V_keep_V_TREADY & http_response_headers_V_last_V_TREADY;
-
-wire http_response_body_V_data_V_TREADY;
-wire http_response_body_V_keep_V_TREADY;
-wire http_response_body_V_strb_V_TREADY;
-wire http_response_body_V_last_V_TREADY;
-assign slice_http_response_body_tready = http_response_body_V_data_V_TREADY & http_response_body_V_keep_V_TREADY & http_response_body_V_last_V_TREADY;
 
 ///////////////////////////////////////////////////////////////////////////////
 // HTTP
@@ -264,18 +224,12 @@ http_ip http_inst (
   .tcp_rx_rsp_TVALID(slice_tcp_rx_rsp_tvalid),
   .tcp_rx_rsp_TREADY(slice_tcp_rx_rsp_tready),
 
-  .tcp_rx_data_V_data_V_TDATA(slice_tcp_rx_data_tdata),
-  .tcp_rx_data_V_keep_V_TKEEP(slice_tcp_rx_data_tkeep),
-  .tcp_rx_data_V_last_V_TLAST(slice_tcp_rx_data_tlast),
-  .tcp_rx_data_V_strb_V_TSTRB(slice_tcp_rx_data_tstrb),
-  .tcp_rx_data_V_data_V_TVALID(slice_tcp_rx_data_tvalid),
-  .tcp_rx_data_V_data_V_TREADY(tcp_rx_data_V_data_V_TREADY),
-  .tcp_rx_data_V_keep_V_TVALID(slice_tcp_rx_data_tvalid),
-  .tcp_rx_data_V_keep_V_TREADY(tcp_rx_data_V_keep_V_TREADY),
-  .tcp_rx_data_V_strb_V_TVALID(slice_tcp_rx_data_tvalid),
-  .tcp_rx_data_V_strb_V_TREADY(tcp_rx_data_V_strb_V_TREADY),
-  .tcp_rx_data_V_last_V_TVALID(slice_tcp_rx_data_tvalid),
-  .tcp_rx_data_V_last_V_TREADY(tcp_rx_data_V_last_V_TREADY),
+  .tcp_rx_data_TDATA(slice_tcp_rx_data_tdata),
+  .tcp_rx_data_TKEEP(slice_tcp_rx_data_tkeep),
+  .tcp_rx_data_TLAST(slice_tcp_rx_data_tlast),
+  .tcp_rx_data_TSTRB(slice_tcp_rx_data_tstrb),
+  .tcp_rx_data_TVALID(slice_tcp_rx_data_tvalid),
+  .tcp_rx_data_TREADY(slice_tcp_rx_data_tready),
 
   .tcp_tx_req_TDATA(slice_tcp_tx_req_tdata),
   .tcp_tx_req_TVALID(slice_tcp_tx_req_tvalid),
@@ -285,18 +239,12 @@ http_ip http_inst (
   .tcp_tx_rsp_TVALID(slice_tcp_tx_rsp_tvalid),
   .tcp_tx_rsp_TREADY(slice_tcp_tx_rsp_tready),
 
-  .tcp_tx_data_V_data_V_TDATA(slice_tcp_tx_data_tdata),
-  .tcp_tx_data_V_keep_V_TKEEP(slice_tcp_tx_data_tkeep),
-  .tcp_tx_data_V_last_V_TLAST(slice_tcp_tx_data_tlast),
-  .tcp_tx_data_V_strb_V_TSTRB(slice_tcp_tx_data_tstrb),
-  .tcp_tx_data_V_data_V_TVALID(tcp_tx_data_V_data_V_TVALID),
-  .tcp_tx_data_V_data_V_TREADY(slice_tcp_tx_data_tready),
-  .tcp_tx_data_V_keep_V_TVALID(tcp_tx_data_V_keep_V_TVALID),
-  .tcp_tx_data_V_keep_V_TREADY(slice_tcp_tx_data_tready),
-  .tcp_tx_data_V_strb_V_TVALID(tcp_tx_data_V_strb_V_TVALID),
-  .tcp_tx_data_V_strb_V_TREADY(slice_tcp_tx_data_tready),
-  .tcp_tx_data_V_last_V_TVALID(tcp_tx_data_V_last_V_TVALID),
-  .tcp_tx_data_V_last_V_TREADY(slice_tcp_tx_data_tready),
+  .tcp_tx_data_TDATA(slice_tcp_tx_data_tdata),
+  .tcp_tx_data_TKEEP(slice_tcp_tx_data_tkeep),
+  .tcp_tx_data_TLAST(slice_tcp_tx_data_tlast),
+  .tcp_tx_data_TSTRB(slice_tcp_tx_data_tstrb),
+  .tcp_tx_data_TVALID(slice_tcp_tx_data_tvalid),
+  .tcp_tx_data_TREADY(slice_tcp_tx_data_tready),
 
   //
   // APPLICATION
@@ -306,61 +254,37 @@ http_ip http_inst (
   .http_request_TVALID(slice_http_request_tvalid),
   .http_request_TREADY(slice_http_request_tready),
 
-  .http_request_headers_V_data_V_TDATA(slice_http_request_headers_tdata),
-  .http_request_headers_V_keep_V_TKEEP(slice_http_request_headers_tkeep),
-  .http_request_headers_V_last_V_TLAST(slice_http_request_headers_tlast),
-  .http_request_headers_V_strb_V_TSTRB(slice_http_request_headers_strb),
-  .http_request_headers_V_data_V_TVALID(http_request_headers_V_data_V_TVALID),
-  .http_request_headers_V_data_V_TREADY(slice_http_request_headers_tready),
-  .http_request_headers_V_keep_V_TVALID(http_request_headers_V_keep_V_TVALID),
-  .http_request_headers_V_keep_V_TREADY(slice_http_request_headers_tready),
-  .http_request_headers_V_strb_V_TVALID(http_request_headers_V_strb_V_TVALID),
-  .http_request_headers_V_strb_V_TREADY(slice_http_request_headers_tready),
-  .http_request_headers_V_last_V_TVALID(http_request_headers_V_last_V_TVALID),
-  .http_request_headers_V_last_V_TREADY(slice_http_request_headers_tready),
+  .http_request_headers_TDATA(slice_http_request_headers_tdata),
+  .http_request_headers_TKEEP(slice_http_request_headers_tkeep),
+  .http_request_headers_TLAST(slice_http_request_headers_tlast),
+  .http_request_headers_TSTRB(slice_http_request_headers_tstrb),
+  .http_request_headers_TVALID(slice_http_request_headers_tvalid),
+  .http_request_headers_TREADY(slice_http_request_headers_tready),
 
-  .http_request_body_V_data_V_TDATA(slice_http_request_body_tdata),
-  .http_request_body_V_keep_V_TKEEP(slice_http_request_body_tkeep),
-  .http_request_body_V_last_V_TLAST(slice_http_request_body_tlast),
-  .http_request_body_V_strb_V_TSTRB(slice_http_request_body_strb),
-  .http_request_body_V_data_V_TVALID(http_request_body_V_data_V_TVALID),
-  .http_request_body_V_data_V_TREADY(slice_http_request_body_tready),
-  .http_request_body_V_keep_V_TVALID(http_request_body_V_keep_V_TVALID),
-  .http_request_body_V_keep_V_TREADY(slice_http_request_body_tready),
-  .http_request_body_V_strb_V_TVALID(http_request_body_V_strb_V_TVALID),
-  .http_request_body_V_strb_V_TREADY(slice_http_request_body_tready),
-  .http_request_body_V_last_V_TVALID(http_request_body_V_last_V_TVALID),
-  .http_request_body_V_last_V_TREADY(slice_http_request_body_tready),
+  .http_request_body_TDATA(slice_http_request_body_tdata),
+  .http_request_body_TKEEP(slice_http_request_body_tkeep),
+  .http_request_body_TLAST(slice_http_request_body_tlast),
+  .http_request_body_TSTRB(slice_http_request_body_strb),
+  .http_request_body_TVALID(slice_http_request_body_tvalid),
+  .http_request_body_TREADY(slice_http_request_body_tready),
 
   .http_response_TDATA(slice_http_response_tdata),
   .http_response_TVALID(slice_http_response_tvalid),
   .http_response_TREADY(slice_http_response_tready),
 
-  .http_response_headers_V_data_V_TDATA(slice_http_response_headers_tdata),
-  .http_response_headers_V_keep_V_TKEEP(slice_http_response_headers_tkeep),
-  .http_response_headers_V_last_V_TLAST(slice_http_response_headers_tlast),
-  .http_response_headers_V_strb_V_TSTRB(slice_http_response_headers_tstrb),
-  .http_response_headers_V_data_V_TVALID(slice_http_response_headers_tvalid),
-  .http_response_headers_V_data_V_TREADY(http_response_headers_V_data_V_TREADY),
-  .http_response_headers_V_keep_V_TVALID(slice_http_response_headers_tvalid),
-  .http_response_headers_V_keep_V_TREADY(http_response_headers_V_keep_V_TREADY),
-  .http_response_headers_V_strb_V_TVALID(slice_http_response_headers_tvalid),
-  .http_response_headers_V_strb_V_TREADY(http_response_headers_V_strb_V_TREADY),
-  .http_response_headers_V_last_V_TVALID(slice_http_response_headers_tvalid),
-  .http_response_headers_V_last_V_TREADY(http_response_headers_V_last_V_TREADY),
+  .http_response_headers_TDATA(slice_http_response_headers_tdata),
+  .http_response_headers_TKEEP(slice_http_response_headers_tkeep),
+  .http_response_headers_TLAST(slice_http_response_headers_tlast),
+  .http_response_headers_TSTRB(slice_http_response_headers_tstrb),
+  .http_response_headers_TVALID(slice_http_response_headers_tvalid),
+  .http_response_headers_TREADY(slice_http_response_headers_tready),
 
-  .http_response_body_V_data_V_TDATA(slice_http_response_body_tdata),
-  .http_response_body_V_keep_V_TKEEP(slice_http_response_body_tkeep),
-  .http_response_body_V_last_V_TLAST(slice_http_response_body_tlast),
-  .http_response_body_V_strb_V_TSTRB(slice_http_response_body_tstrb),
-  .http_response_body_V_data_V_TVALID(slice_http_response_body_tvalid),
-  .http_response_body_V_data_V_TREADY(http_response_body_V_data_V_TREADY),
-  .http_response_body_V_keep_V_TVALID(slice_http_response_body_tvalid),
-  .http_response_body_V_keep_V_TREADY(http_response_body_V_keep_V_TREADY),
-  .http_response_body_V_strb_V_TVALID(slice_http_response_body_tvalid),
-  .http_response_body_V_strb_V_TREADY(http_response_body_V_strb_V_TREADY),
-  .http_response_body_V_last_V_TVALID(slice_http_response_body_tvalid),
-  .http_response_body_V_last_V_TREADY(http_response_body_V_last_V_TREADY)
+  .http_response_body_TDATA(slice_http_response_body_tdata),
+  .http_response_body_TKEEP(slice_http_response_body_tkeep),
+  .http_response_body_TLAST(slice_http_response_body_tlast),
+  .http_response_body_TSTRB(slice_http_response_body_tstrb),
+  .http_response_body_TVALID(slice_http_response_body_tvalid),
+  .http_response_body_TREADY(slice_http_response_body_tready)
 );
 
 ///////////////////////////////////////////////////////////////////////////////
